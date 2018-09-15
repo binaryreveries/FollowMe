@@ -1,6 +1,8 @@
 # FollowMe
 
 
+[![Build Status](https://travis-ci.org/binaryreveries/FollowMe.svg?branch=master)](https://travis-ci.org/binaryreveries/FollowMe)
+
 ## Requirements
 
 ### [LÖVE](http://love2d.org/)
