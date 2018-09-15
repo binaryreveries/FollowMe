@@ -39,6 +39,7 @@ function love.update(dt)
 
   angle = player.body:getAngle()
   f = 0
+  turnMultiplier = math.pi / 64
 
   -- setup keyboard event handling
   if love.keyboard.isDown("w") then
@@ -49,12 +50,11 @@ function love.update(dt)
   end
 
   if love.keyboard.isDown("a") then
-    player.body:setAngle(-.4)
+    angle = angle - turnMultiplier
   elseif love.keyboard.isDown("d") then
-    player.body:setAngle(.4)
-  else
-    player.body:setAngle(0)
+    angle = angle + turnMultiplier
   end
+  player.body:setAngle(angle)
   xf = -f * math.cos(angle)
   yf = f * math.sin(angle)
   player.body:applyForce(xf, -yf)
