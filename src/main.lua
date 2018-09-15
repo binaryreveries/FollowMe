@@ -20,16 +20,20 @@ function love.load()
   player.body = love.physics.newBody(world, width/2, height/2, "dynamic")
   player.shape = love.physics.newRectangleShape(0, 0, player.width, player.height)
   -- attach fixture to body and set density to 1 (density increases mass)
-  player.fixture = love.physics.newFixture(player.body, player.shape, 1)
+  player.fixture = love.physics.newFixture(player.body, player.shape)
   player.fixture:setRestitution(0.9)
   player.fixture:setFriction(0.5)
   player.acceleration = 30
+  player.mass = 1000
+  player.body:setMass(player.mass)
 
   objects = {} -- collection of physical objects
   objects.block1 = {}
   objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
+  objects.block1.mass = 10
+  objects.block1.body:setMass(objects.block1.mass)
   objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
-  objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape, 5)
+  objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape)
 
   love.window.setMode(width, height)
 end
