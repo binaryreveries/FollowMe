@@ -35,6 +35,29 @@ function love.load()
   objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
   objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape)
 
+  border = love.graphics.newImage("border.png")
+  border:setWrap("repeat")
+  borderQuad = love.graphics.newQuad(0, 0, width, border:getHeight(), border:getDimensions())
+
+  objects.borderTop = {}
+  objects.borderTop.img = border
+  objects.borderTop.width = width
+  objects.borderTop.height = objects.borderTop.img:getHeight()
+  objects.borderTop.quad = borderQuad
+  objects.borderTop.body = love.physics.newBody(world, width/2, objects.borderTop.height/2)
+  objects.borderTop.shape = love.physics.newRectangleShape(objects.borderTop.width, objects.borderTop.height)
+  objects.borderTop.fixture = love.physics.newFixture(objects.borderTop.body, objects.borderTop.shape)
+
+  objects.borderBottom = {}
+  objects.borderBottom.img = border
+  objects.borderBottom.width = width
+  objects.borderBottom.height = objects.borderBottom.img:getHeight()
+  objects.borderBottom.quad = borderQuad
+  objects.borderBottom.body = love.physics.newBody(world, width/2, height-objects.borderBottom.height/2)
+  objects.borderBottom.shape = love.physics.newRectangleShape(objects.borderBottom.width, objects.borderBottom.height)
+  objects.borderBottom.fixture = love.physics.newFixture(objects.borderBottom.body, objects.borderBottom.shape)
+
+  love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
   love.window.setMode(width, height)
 end
 
@@ -68,7 +91,14 @@ function love.draw()
   love.graphics.setColor(0.28, 0.64, 0.05)
   love.graphics.polygon("fill",
     objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
+
   love.graphics.setColor(255, 255, 255, 255)
+  love.graphics.draw(objects.borderTop.img, objects.borderTop.quad, 0, 0)
+  --  objects.borderTop.body:getWorldPoints(objects.borderTop.shape:getPoints()))
+
+  love.graphics.draw(objects.borderBottom.img, objects.borderBottom.quad, 0, objects.borderBottom.body:getY(), 0, 1, -1)
+  --  objects.borderBottom.body:getWorldPoints(objects.borderBottom.shape:getPoints()))
+
   love.graphics.draw(player.img,
                      player.body:getX(),
                      player.body:getY(),
