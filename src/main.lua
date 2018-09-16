@@ -64,9 +64,9 @@ end
 function love.update(dt)
   world:update(dt) -- put the world in motion!
 
-  angle = player.body:getAngle()
   f = 0
-  turnMultiplier = math.pi / 64
+  angularVelocity = 0
+  turnMultiplier = 4
 
   -- setup keyboard event handling
   if love.keyboard.isDown("w") then
@@ -77,11 +77,14 @@ function love.update(dt)
   end
 
   if love.keyboard.isDown("a") then
-    angle = angle - turnMultiplier
+    angularVelocity = -turnMultiplier
   elseif love.keyboard.isDown("d") then
-    angle = angle + turnMultiplier
+    angularVelocity = turnMultiplier
   end
-  player.body:setAngle(angle)
+
+  player.body:applyTorque(angularVelocity*player.body:getInertia())
+
+  angle = player.body:getAngle()
   xf = -f * math.cos(angle)
   yf = f * math.sin(angle)
   player.body:applyForce(xf, -yf)
