@@ -85,6 +85,9 @@ function love.update(dt)
   xf = -f * math.cos(angle)
   yf = f * math.sin(angle)
   player.body:applyForce(xf, -yf)
+
+  vx, vy = player.body:getLinearVelocity()
+  player.speed = math.sqrt((vx * vx) + (vy * vy))
 end
 
 function love.draw()
@@ -107,4 +110,8 @@ function love.draw()
                      1,
                      player.width/2,
                      player.height/2)
+
+  speedText = string.format("%d m/s", player.speed)
+
+  love.graphics.print(speedText, player.body:getX()+14, player.body:getY()-10)
 end
