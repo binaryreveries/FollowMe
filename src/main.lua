@@ -165,3 +165,7 @@ function love.draw()
 
   love.graphics.print(speedText, player.body:getX()+14, player.body:getY()-10)
 end
+
+function love.filedropped(file)
+  player.img = love.graphics.newImage(file)
+end
