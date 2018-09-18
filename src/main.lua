@@ -127,6 +127,12 @@ function love.update(dt)
 
   vx, vy = player.body:getLinearVelocity()
   player.speed = math.sqrt((vx * vx) + (vy * vy))
+
+  if (x < 0) then
+    player.body:setPosition(width, y)
+  elseif (x > width) then
+    player.body:setPosition(0, y)
+  end
 end
 
 function love.draw()
