@@ -1,6 +1,6 @@
 -- FollowMe
 -- Move car around using the arrow keys.
--- Compatible with löve 0.8.0 and up
+-- Compatible with löve 0.10.0 and up
 
 
 turnMultiplier = 8
