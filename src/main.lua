@@ -1,6 +1,12 @@
 -- FollowMe
 -- Move car around using the arrow keys.
--- Compatible with löve 0.8.0 and up
+-- Compatible with löve 0.10.0 and up
+
+
+turnMultiplier = 8
+wheelForceFriction = 50
+wheelTorqueFriction = 1
+joints = {}
 
 function love.load()
   love.physics.setMeter(16) -- length of a meter in our world is 16px
@@ -20,14 +26,14 @@ function love.load()
   player.body = love.physics.newBody(world, width/2, height/2, "dynamic")
   player.shape = love.physics.newRectangleShape(0, 0, player.width, player.height)
   -- attach fixture to body and set density to 1 (density increases mass)
-  player.fixture = love.physics.newFixture(player.body, player.shape)
-  player.fixture:setRestitution(0.9)
-  player.fixture:setFriction(0.5)
-  player.acceleration = 30
-  player.mass = 1000
-  player.body:setMass(player.mass)
+  player.fixture = love.physics.newFixture(player.body, player.shape, 1)
+  player.acceleration = 300
 
   objects = {} -- collection of physical objects
+  objects.ground = {}
+  objects.ground.body = love.physics.newBody(world, width/2, height/2)
+  objects.ground.shape = love.physics.newRectangleShape(width, height)
+
   objects.block1 = {}
   objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
   objects.block1.mass = 10
@@ -61,44 +67,91 @@ function love.load()
   love.window.setMode(width, height)
 end
 
+-- rotate a vector `x, y` in 2D space by `angle`
+-- x2=cosβx1−sinβy1
+-- y2=sinβx1+cosβy1
+function rotateVector(x, y, angle)
+  s = math.sin(angle)
+  c = math.cos(angle)
+  return x*c - y*s, x*s + y*c
+end
+
+function createJoint(surface, object, x, y, maxForceFriction, maxTorqueFriction)
+  j = love.physics.newFrictionJoint(surface, object, x, y, true)
+  j:setMaxForce(object:getMass() * maxForceFriction)
+  j:setMaxTorque(object:getInertia() * maxTorqueFriction)
+  return j
+end
+
 function love.update(dt)
   world:update(dt) -- put the world in motion!
 
-  angle = player.body:getAngle()
-  f = 0
-  turnMultiplier = math.pi / 64
+  for index, joint in pairs(joints) do
+    joint:destroy()
+  end
+
+  joints = {}
 
   -- setup keyboard event handling
-  if love.keyboard.isDown("w") then
-    f = player.body:getMass() * player.acceleration
-  end
-  if love.keyboard.isDown("s") then
-    f = player.body:getMass() * -player.acceleration
+  inertia = player.body:getInertia()
+  if love.keyboard.isDown("a") then
+    player.body:applyTorque(-turnMultiplier * inertia)
+  elseif love.keyboard.isDown("d") then
+    player.body:applyTorque(turnMultiplier * inertia)
   end
 
-  if love.keyboard.isDown("a") then
-    angle = angle - turnMultiplier
-  elseif love.keyboard.isDown("d") then
-    angle = angle + turnMultiplier
+  angle = player.body:getAngle()
+  mass = player.body:getMass()
+  if love.keyboard.isDown("w") then
+    fx = mass * -player.acceleration * math.cos(angle)
+    fy = mass * -player.acceleration * math.sin(angle)
+    player.body:applyForce(fx, fy)
+  elseif love.keyboard.isDown("s") then
+    fx = mass * player.acceleration * math.cos(angle)
+    fy = mass * player.acceleration * math.sin(angle)
+    player.body:applyForce(fx, fy)
   end
-  player.body:setAngle(angle)
-  xf = -f * math.cos(angle)
-  yf = f * math.sin(angle)
-  player.body:applyForce(xf, -yf)
+
+  x, y = player.body:getWorldCenter()
+
+  -- wheel coordinates
+  x1, y1 = rotateVector(-player.width/2, -player.height/2, angle) -- front left
+  x2, y2 = rotateVector(player.width/2, -player.height/2, angle) -- front right
+  x3, y3 = rotateVector(-player.width/2, player.height/2, angle) -- rear left
+  x4, y4 = rotateVector(player.width/2, player.height/2, angle) -- rear right
+
+  table.insert(joints, createJoint(objects.ground.body, player.body, x + x1, y + y1, wheelForceFriction, wheelTorqueFriction))
+  table.insert(joints, createJoint(objects.ground.body, player.body, x + x2, y + y2, wheelForceFriction, wheelTorqueFriction))
+  table.insert(joints, createJoint(objects.ground.body, player.body, x + x3, y + y3, wheelForceFriction, wheelTorqueFriction))
+  table.insert(joints, createJoint(objects.ground.body, player.body, x + x4, y + y4, wheelForceFriction, wheelTorqueFriction))
+
+  vx, vy = player.body:getLinearVelocity()
+  player.speed = math.sqrt((vx * vx) + (vy * vy))
+
+  if (x < 0) then
+    player.body:setPosition(width, y)
+  elseif (x > width) then
+    player.body:setPosition(0, y)
+  end
 end
 
 function love.draw()
+  love.graphics.setColor(0.2, 0.2, 0.2)
+  love.graphics.polygon("fill",
+    objects.ground.body:getWorldPoints(objects.ground.shape:getPoints()))
+
   love.graphics.setColor(0.28, 0.64, 0.05)
   love.graphics.polygon("fill",
     objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
 
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.draw(objects.borderTop.img, objects.borderTop.quad, 0, 0)
-  --  objects.borderTop.body:getWorldPoints(objects.borderTop.shape:getPoints()))
 
   love.graphics.draw(objects.borderBottom.img, objects.borderBottom.quad, 0, objects.borderBottom.body:getY(), 0, 1, -1)
-  --  objects.borderBottom.body:getWorldPoints(objects.borderBottom.shape:getPoints()))
 
+  love.graphics.setColor(0.28, 0.64, 0.05)
+  love.graphics.polygon("line",
+    player.body:getWorldPoints(player.shape:getPoints()))
   love.graphics.draw(player.img,
                      player.body:getX(),
                      player.body:getY(),
@@ -107,4 +160,12 @@ function love.draw()
                      1,
                      player.width/2,
                      player.height/2)
+
+  speedText = string.format("%d m/s", player.speed)
+
+  love.graphics.print(speedText, player.body:getX()+14, player.body:getY()-10)
+end
+
+function love.filedropped(file)
+  player.img = love.graphics.newImage(file)
 end
