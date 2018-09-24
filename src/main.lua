@@ -8,6 +8,20 @@ wheelForceFriction = 50
 wheelTorqueFriction = 1
 joints = {}
 
+function makeRoad()
+  road = {}
+  road.img = roadSkin
+  road.width = road.img:getWidth()
+  road.height = road.img:getHeight()
+  road.body= love.physics.newBody(world, road.width, road.height)
+  road.shape = love.physics.newRectangleShape(0, 0, road.width, road.height)
+  road.body:setX(player.body:getX())
+  road.body:setY(player.body:getY())
+  road.body:setAngle(player.body:getAngle())
+  return road
+end
+
+
 function love.load()
   love.physics.setMeter(16) -- length of a meter in our world is 16px
   world = love.physics.newWorld(0, 0, true) -- create a world with no horizontal or vertical gravity
@@ -34,12 +48,12 @@ function love.load()
   objects.ground.body = love.physics.newBody(world, width/2, height/2)
   objects.ground.shape = love.physics.newRectangleShape(width, height)
 
-  objects.block1 = {}
-  objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
-  objects.block1.mass = 10
-  objects.block1.body:setMass(objects.block1.mass)
-  objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
-  objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape)
+  --objects.block1 = {}
+  --objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
+  --objects.block1.mass = 10
+  --objects.block1.body:setMass(objects.block1.mass)
+  --objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
+  --objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape)
 
   border = love.graphics.newImage("border.png")
   border:setWrap("repeat")
@@ -63,6 +77,29 @@ function love.load()
   objects.borderBottom.shape = love.physics.newRectangleShape(objects.borderBottom.width, objects.borderBottom.height)
   objects.borderBottom.fixture = love.physics.newFixture(objects.borderBottom.body, objects.borderBottom.shape)
 
+  
+  roads = {}
+  
+  roadSkin = love.graphics.newImage("road.png")
+  roads[1] = makeRoad()
+  
+  objects.frontier = {}
+  objects.frontier.body = love.physics.newBody(world, roads[1].body:getX() - 30, roads[1].body:getY())
+  objects.frontier.shape = love.physics.newRectangleShape(roads[1].width, roads[1].height)
+  objects.frontier.fixture = love.physics.newFixture(objects.frontier.body, objects.frontier.shape)
+  
+  --objects.road = {}
+  --objects.road.img = road
+  --objects.road.width = objects.road.img:getWidth()
+  --objects.road.height = objects.road.img:getHeight()
+  --objects.road.body= love.physics.newBody(world, objects.road.width, objects.road.height)
+  --objects.road.shape = love.physics.newRectangleShape(0, 0, objects.road.width, objects.road.height)
+  --objects.road.body:setX(player.body:getX())
+  --objects.road.body:setY(player.body:getY())
+  --objects.road.body:setAngle(player.body:getAngle())
+  
+  
+  
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
   love.window.setMode(width, height)
 end
@@ -133,6 +170,16 @@ function love.update(dt)
   elseif (x > width) then
     player.body:setPosition(0, y)
   end
+  
+  -- paving new road
+  
+  distance = love.physics.getDistance(player.fixture, objects.frontier.fixture)
+  
+  if (distance < 2) then
+    objects.frontier.body:setX(player.body:getX() - 30 + .1 * player.body:getLinearVelocity())
+    objects.frontier.body:setY(player.body:getY())
+    table.insert(roads, makeRoad())
+  end
 end
 
 function love.draw()
@@ -141,14 +188,28 @@ function love.draw()
     objects.ground.body:getWorldPoints(objects.ground.shape:getPoints()))
 
   love.graphics.setColor(0.28, 0.64, 0.05)
-  love.graphics.polygon("fill",
-    objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
+  --love.graphics.polygon("fill",
+  --  objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
 
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.draw(objects.borderTop.img, objects.borderTop.quad, 0, 0)
 
   love.graphics.draw(objects.borderBottom.img, objects.borderBottom.quad, 0, objects.borderBottom.body:getY(), 0, 1, -1)
 
+  for index, road in pairs(roads) do
+    love.graphics.draw(road.img,
+                       road.body:getX(),
+                       road.body:getY(), -- need to shift so that car is in center, using width, height and Angle
+                       road.body:getAngle())
+  end                   
+  love.graphics.polygon("fill",
+    objects.frontier.body:getWorldPoints(objects.frontier.shape:getPoints())
+  )
+  
+  distText = string.format(distance)
+  love.graphics.print(distText, objects.frontier.body:getX() + 20, objects.frontier.body:getY() + 20)
+    
+  
   love.graphics.setColor(0.28, 0.64, 0.05)
   love.graphics.polygon("line",
     player.body:getWorldPoints(player.shape:getPoints()))
