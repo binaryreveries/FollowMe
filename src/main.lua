@@ -6,18 +6,22 @@
 turnMultiplier = 8
 wheelForceFriction = 50
 wheelTorqueFriction = 1
+roadJog = 30
 joints = {}
 
-function makeRoad()
+function makeRoad(leader)
   road = {}
   road.img = roadSkin
   road.width = road.img:getWidth()
   road.height = road.img:getHeight()
-  road.body= love.physics.newBody(world, road.width, road.height)
+  road.body = love.physics.newBody(world)
+  road.body:setAngle(leader.body:getAngle())
+  fx = math.sin(road.body:getAngle()) * (road.height/2)
+  fy = math.cos(road.body:getAngle()) * -(road.height/2)
+  road.body:setX(leader.body:getX() + fx)
+  road.body:setY(leader.body:getY() + fy)
   road.shape = love.physics.newRectangleShape(0, 0, road.width, road.height)
-  road.body:setX(player.body:getX())
-  road.body:setY(player.body:getY())
-  road.body:setAngle(player.body:getAngle())
+
   return road
 end
 
@@ -26,8 +30,8 @@ function love.load()
   love.physics.setMeter(16) -- length of a meter in our world is 16px
   world = love.physics.newWorld(0, 0, true) -- create a world with no horizontal or vertical gravity
 
-  width = 650
-  height = 650
+  width = 950
+  height = 950
 
   -- create car
   player = {}
@@ -81,10 +85,12 @@ function love.load()
   roads = {}
   
   roadSkin = love.graphics.newImage("road.png")
-  roads[1] = makeRoad()
+  roads[1] = makeRoad(player)
   
   objects.frontier = {}
-  objects.frontier.body = love.physics.newBody(world, roads[1].body:getX() - 30, roads[1].body:getY())
+  objects.frontier.body = love.physics.newBody(world)
+  objects.frontier.body:setX(player.body:getX() - 30)
+  objects.frontier.body:setY(player.body:getY())
   objects.frontier.shape = love.physics.newRectangleShape(roads[1].width, roads[1].height)
   objects.frontier.fixture = love.physics.newFixture(objects.frontier.body, objects.frontier.shape)
   
@@ -175,10 +181,14 @@ function love.update(dt)
   
   distance = love.physics.getDistance(player.fixture, objects.frontier.fixture)
   
-  if (distance < 2) then
-    objects.frontier.body:setX(player.body:getX() - 30 + .1 * player.body:getLinearVelocity())
-    objects.frontier.body:setY(player.body:getY())
-    table.insert(roads, makeRoad())
+  if (distance < roadJog /2) then
+    objects.frontier.body:setAngle(player.body:getAngle())
+    fy = roadJog * math.sin(objects.frontier.body:getAngle())  
+    fx = roadJog * math.cos(objects.frontier.body:getAngle())
+    objects.frontier.body:setX(player.body:getX() -  fx)
+    objects.frontier.body:setY(player.body:getY() -  fy)
+     
+    table.insert(roads, makeRoad(player))
   end
 end
 
@@ -205,6 +215,13 @@ function love.draw()
   love.graphics.polygon("fill",
     objects.frontier.body:getWorldPoints(objects.frontier.shape:getPoints())
   )
+  
+  fx = math.sin(player.body:getAngle())
+  fy = math.cos(player.body:getAngle())
+  
+
+  love.graphics.print(fx, 20, 40)
+  love.graphics.print(fy, 20, 20)
   
   distText = string.format(distance)
   love.graphics.print(distText, objects.frontier.body:getX() + 20, objects.frontier.body:getY() + 20)
