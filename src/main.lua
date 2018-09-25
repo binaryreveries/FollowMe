@@ -15,7 +15,7 @@ function makeRoad(leader)
   road.width = road.img:getWidth()
   road.height = road.img:getHeight()
   road.body = love.physics.newBody(world)
-  road.body:setAngle(leader.body:getAngle())
+  road.body:setAngle(leader.trojectory)
   fx = math.sin(road.body:getAngle()) * (road.height/2)
   fy = math.cos(road.body:getAngle()) * -(road.height/2)
   road.body:setX(leader.body:getX() + fx)
@@ -46,6 +46,11 @@ function love.load()
   -- attach fixture to body and set density to 1 (density increases mass)
   player.fixture = love.physics.newFixture(player.body, player.shape, 1)
   player.acceleration = 300
+  player.lastX = player.body:getX()
+  player.lastY = player.body:getY()
+  player.dx = player.body:getX() - player.lastX
+  player.dy = player.body:getY() - player.lastY
+  player.trojectory = math.atan2(player.dx, player.dy)
 
   objects = {} -- collection of physical objects
   objects.ground = {}
@@ -179,10 +184,17 @@ function love.update(dt)
   
   -- paving new road
   
+
+  player.dx = player.body:getX() - player.lastX
+  player.dy = player.body:getY() - player.lastY
+  player.lastX = player.body:getX()
+  player.lastY = player.body:getY()
+  player.trojectory = math.atan2(player.dy, player.dx)
+  
   distance = love.physics.getDistance(player.fixture, objects.frontier.fixture)
   
   if (distance < roadJog /2) then
-    objects.frontier.body:setAngle(player.body:getAngle())
+    objects.frontier.body:setAngle(player.trojectory)
     fy = roadJog * math.sin(objects.frontier.body:getAngle())  
     fx = roadJog * math.cos(objects.frontier.body:getAngle())
     objects.frontier.body:setX(player.body:getX() -  fx)
@@ -216,12 +228,11 @@ function love.draw()
     objects.frontier.body:getWorldPoints(objects.frontier.shape:getPoints())
   )
   
-  fx = math.sin(player.body:getAngle())
-  fy = math.cos(player.body:getAngle())
-  
-
-  love.graphics.print(fx, 20, 40)
-  love.graphics.print(fy, 20, 20)
+  love.graphics.print(player.lastX, 20, 20)
+  love.graphics.print(player.lastY, 20, 40)
+  love.graphics.print(player.dx, 20, 60)
+  love.graphics.print(player.dy, 20, 80)
+  love.graphics.print(player.trojectory, 20, 100)
   
   distText = string.format(distance)
   love.graphics.print(distText, objects.frontier.body:getX() + 20, objects.frontier.body:getY() + 20)
