@@ -6,7 +6,7 @@
 turnMultiplier = 8
 wheelForceFriction = 50
 wheelTorqueFriction = 1
-roadJog = 30
+roadJog = 34
 joints = {}
 
 function makeRoad(leader)
@@ -94,7 +94,7 @@ function love.load()
   
   objects.frontier = {}
   objects.frontier.body = love.physics.newBody(world)
-  objects.frontier.body:setX(player.body:getX() - 30)
+  objects.frontier.body:setX(player.body:getX() - (roadJog+10))
   objects.frontier.body:setY(player.body:getY())
   objects.frontier.shape = love.physics.newRectangleShape(roads[1].width, roads[1].height)
   objects.frontier.fixture = love.physics.newFixture(objects.frontier.body, objects.frontier.shape)
@@ -183,22 +183,25 @@ function love.update(dt)
   end
   
   -- paving new road
+  lastTrojectory = player.trojectory
   
-
   player.dx = player.body:getX() - player.lastX
   player.dy = player.body:getY() - player.lastY
   player.lastX = player.body:getX()
   player.lastY = player.body:getY()
   player.trojectory = math.atan2(player.dy, player.dx)
   
+  deltaTrojectory = math.abs(lastTrojectory - player.trojectory)
+
+  
   distance = love.physics.getDistance(player.fixture, objects.frontier.fixture)
   
-  if (distance < roadJog /2) then
+  if (distance < roadJog / 4) then
     objects.frontier.body:setAngle(player.trojectory)
-    fy = roadJog * math.sin(objects.frontier.body:getAngle())  
-    fx = roadJog * math.cos(objects.frontier.body:getAngle())
-    objects.frontier.body:setX(player.body:getX() -  fx)
-    objects.frontier.body:setY(player.body:getY() -  fy)
+    fy = (roadJog + distance) * math.sin(objects.frontier.body:getAngle())  
+    fx = (roadJog + distance) * math.cos(objects.frontier.body:getAngle())
+    objects.frontier.body:setX(player.body:getX() + fx)
+    objects.frontier.body:setY(player.body:getY() + fy)
      
     table.insert(roads, makeRoad(player))
   end
@@ -233,6 +236,7 @@ function love.draw()
   love.graphics.print(player.dx, 20, 60)
   love.graphics.print(player.dy, 20, 80)
   love.graphics.print(player.trojectory, 20, 100)
+  love.graphics.print(deltaTrojectory, 20, 120)
   
   distText = string.format(distance)
   love.graphics.print(distText, objects.frontier.body:getX() + 20, objects.frontier.body:getY() + 20)
