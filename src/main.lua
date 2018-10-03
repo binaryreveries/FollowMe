@@ -57,12 +57,12 @@ function love.load()
   objects.ground.body = love.physics.newBody(world, width/2, height/2)
   objects.ground.shape = love.physics.newRectangleShape(width, height)
 
-  --objects.block1 = {}
-  --objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
-  --objects.block1.mass = 10
-  --objects.block1.body:setMass(objects.block1.mass)
-  --objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
-  --objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape)
+  objects.block1 = {}
+  objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
+  objects.block1.mass = 10
+  objects.block1.body:setMass(objects.block1.mass)
+  objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
+  objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape)
 
   border = love.graphics.newImage("border.png")
   border:setWrap("repeat")
@@ -173,19 +173,17 @@ function love.update(dt)
   end
   
   -- paving new road
-  lastTrojectory = player.trojectory
-  
+  -- get player trojectory for new road object angle
+  lastTrojectory = player.trojectory 
   player.dx = player.body:getX() - player.lastX
   player.dy = player.body:getY() - player.lastY
   player.lastX = player.body:getX()
   player.lastY = player.body:getY()
   player.trojectory = math.atan2(player.dy, player.dx)
-  
   deltaTrojectory = math.abs(lastTrojectory - player.trojectory)
 
-  
+  -- detect if player is triggering new road creation and calculate location of new road
   distance = love.physics.getDistance(player.fixture, objects.frontier.fixture)
-  
   if (distance < roadJog/10) then
     objects.frontier.body:setAngle(player.trojectory)
     fy = (roadJog) * math.sin(objects.frontier.body:getAngle())  
@@ -221,6 +219,7 @@ function love.draw()
     objects.frontier.body:getWorldPoints(objects.frontier.shape:getPoints())
   )
   
+  -- misc print statements for troubleshooting
   love.graphics.print(player.lastX, 20, 20)
   love.graphics.print(player.lastY, 20, 40)
   love.graphics.print(player.dx, 20, 60)
