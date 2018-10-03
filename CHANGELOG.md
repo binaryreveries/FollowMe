@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.2.5] - 2018-10-02
 ### Changed
 - Windows packaging procedure to unzip LÖVE before `cat`ing with game package.
 
@@ -52,7 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hello World unity project.
 - Basic road building functionality.
 
-[Unreleased]: https://github.com/binaryreveries/FollowMe/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/binaryreveries/FollowMe/compare/v0.2.5...HEAD
+[0.2.5]: https://github.com/binaryreveries/FollowMe/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/binaryreveries/FollowMe/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/binaryreveries/FollowMe/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/binaryreveries/FollowMe/compare/v0.2.1...v0.2.2
