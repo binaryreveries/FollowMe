@@ -6,7 +6,7 @@
 turnMultiplier = 8
 wheelForceFriction = 50
 wheelTorqueFriction = 1
-roadJog = 34
+roadJog = 40
 joints = {}
 
 function makeRoad(leader)
@@ -30,8 +30,8 @@ function love.load()
   love.physics.setMeter(16) -- length of a meter in our world is 16px
   world = love.physics.newWorld(0, 0, true) -- create a world with no horizontal or vertical gravity
 
-  width = 950
-  height = 950
+  width = 650
+  height = 650
 
   -- create car
   player = {}
@@ -94,21 +94,11 @@ function love.load()
   
   objects.frontier = {}
   objects.frontier.body = love.physics.newBody(world)
-  objects.frontier.body:setX(player.body:getX() - (roadJog+10))
+  objects.frontier.body:setX(player.body:getX()-50)
   objects.frontier.body:setY(player.body:getY())
   objects.frontier.shape = love.physics.newRectangleShape(roads[1].width, roads[1].height)
   objects.frontier.fixture = love.physics.newFixture(objects.frontier.body, objects.frontier.shape)
-  
-  --objects.road = {}
-  --objects.road.img = road
-  --objects.road.width = objects.road.img:getWidth()
-  --objects.road.height = objects.road.img:getHeight()
-  --objects.road.body= love.physics.newBody(world, objects.road.width, objects.road.height)
-  --objects.road.shape = love.physics.newRectangleShape(0, 0, objects.road.width, objects.road.height)
-  --objects.road.body:setX(player.body:getX())
-  --objects.road.body:setY(player.body:getY())
-  --objects.road.body:setAngle(player.body:getAngle())
-  
+  objects.frontier.fixture:setSensor(true)
   
   
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
@@ -196,10 +186,10 @@ function love.update(dt)
   
   distance = love.physics.getDistance(player.fixture, objects.frontier.fixture)
   
-  if (distance < roadJog / 4) then
+  if (distance < roadJog/10) then
     objects.frontier.body:setAngle(player.trojectory)
-    fy = (roadJog + distance) * math.sin(objects.frontier.body:getAngle())  
-    fx = (roadJog + distance) * math.cos(objects.frontier.body:getAngle())
+    fy = (roadJog) * math.sin(objects.frontier.body:getAngle())  
+    fx = (roadJog) * math.cos(objects.frontier.body:getAngle())
     objects.frontier.body:setX(player.body:getX() + fx)
     objects.frontier.body:setY(player.body:getY() + fy)
      
