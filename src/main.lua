@@ -201,8 +201,8 @@ function love.draw()
     objects.ground.body:getWorldPoints(objects.ground.shape:getPoints()))
 
   love.graphics.setColor(0.28, 0.64, 0.05)
-  --love.graphics.polygon("fill",
-  --  objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
+  love.graphics.polygon("fill",
+    objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
 
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.draw(objects.borderTop.img, objects.borderTop.quad, 0, 0)
