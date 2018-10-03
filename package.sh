@@ -61,9 +61,11 @@ case "$TARGET" in
   "windows")
     printf "Creating Windows executable ...\n"
     pushd "$PKG"
-    curl -L -o love.exe "$LOVE_WIN_URL"
+    curl -L -o love-win.zip "$LOVE_WIN_URL"
+    unzip -j love-win.zip -d love-win
+    mv -v love-win/love.exe .
     cat love.exe FollowMe.love > FollowMe.exe
-    rm -rf love.exe
+    rm -rf love.exe love-win love-win.zip
     popd
     ;;
   "linux")
