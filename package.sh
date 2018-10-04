@@ -54,7 +54,7 @@ case "$TARGET" in
     mv -v love.app FollowMe.app
     cp -v FollowMe.love "FollowMe.app/Contents/Resources/"
     cp -v Info.plist "FollowMe.app/Contents/"
-    zip -r FollowMe.zip FollowMe.app
+    zip -r FollowMe-macOS.zip FollowMe.app
     rm -rf Info.plist love-macos.zip FollowMe.app
     popd
     ;;
@@ -62,10 +62,13 @@ case "$TARGET" in
     printf "Creating Windows executable ...\n"
     pushd "$PKG"
     curl -L -o love-win.zip "$LOVE_WIN_URL"
-    unzip -j love-win.zip -d love-win
-    mv -v love-win/love.exe .
-    cat love.exe FollowMe.love > FollowMe.exe
-    rm -rf love.exe love-win love-win.zip
+    unzip -j love-win.zip -d FollowMe
+    pushd FollowMe
+    cat love.exe ../FollowMe.love > FollowMe.exe
+    rm -f love.exe
+    popd
+    zip -r FollowMe-Win32.zip FollowMe
+    rm -rf love-win.zip FollowMe
     popd
     ;;
   "linux")
