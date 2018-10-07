@@ -43,8 +43,8 @@ deploy:
     secure: UwQeea/uAVaQfpjIeYOK98SzFeJt2YlR7CIdov2HhY0brfHzRSBui5KrpPIga/Q0Df6rUOE3uMLWqKSqD6iLOk8gygFN5TKpxFecUeO6RcMdxmwg33VWMkNmJ7QGE6kxF4383aekY/8PGRdvK8bAwS473u48gNpi7meglw+DvUGpmDxt5jZdH3puqsazDQxj3DM1SepZkEQXuPLBepUHDbKTkFtDOZ4mUiwQ9dQ34If/WBnmPKK1Jlanbr931CdFJXixNzDFBrncq3ETIU7vcH+0pJBcXqDpWbFP7o/CtfvHhVbIrCpaXfxmYIpubqo9rbocnp3S+2xa4295lVKc+4lagoqWBYkk0GTiMEKI7Iuq/pRDxBmZTDlUPWU4D5tTJbbjLvvYqyvR2OiFpbIor3D4O21ixXjdCtcnz+f3YRWcQMVhoKvatAnMc1n4SxUKMyFBmU5yfbseUNf45oU5IjhLus7sGJ84BODPRdaf7nHIeCRNqCd7+ZOlHmHOo1D3eY87M59qh7Kbeo4UsBT2aP7H3R0b+eaZw6LL/SCWh+4QE7hipqvItpu3qOs8iQXtIJPSSBcYOs4YdtgEo+auyj+lljUzvLMhAPTXgVBVxQ7I08BHB6m7LJHYzdybWujklH1H/2viHcL5iJ4WsCgkbBKDsEr1kcGKvXgu7+SUMVM=
   file:
   - "pkg/FollowMe.love"
-  - "pkg/FollowMe.zip"
-  - "pkg/FollowMe.exe"
+  - "pkg/FollowMe-macOS.zip"
+  - "pkg/FollowMe-Win32.zip"
   skip_cleanup: true
   on:
     tags: true
