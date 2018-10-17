@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.2.6] - 2018-10-16
 ### Added
 - Make road based on player position and angle.
 
@@ -59,7 +61,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hello World unity project.
 - Basic road building functionality.
 
-[Unreleased]: https://github.com/binaryreveries/FollowMe/compare/v0.2.5...HEAD
+[Unreleased]: https://github.com/binaryreveries/FollowMe/compare/v0.2.6...HEAD
+[0.2.6]: https://github.com/binaryreveries/FollowMe/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/binaryreveries/FollowMe/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/binaryreveries/FollowMe/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/binaryreveries/FollowMe/compare/v0.2.2...v0.2.3
