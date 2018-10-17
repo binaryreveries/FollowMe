@@ -230,10 +230,6 @@ function love.draw()
   distText = string.format(distance)
   love.graphics.print(distText, objects.frontier.body:getX() + 20, objects.frontier.body:getY() + 20)
     
-  
-  love.graphics.setColor(0.28, 0.64, 0.05)
-  love.graphics.polygon("line",
-    player.body:getWorldPoints(player.shape:getPoints()))
   love.graphics.draw(player.img,
                      player.body:getX(),
                      player.body:getY(),
@@ -243,6 +239,9 @@ function love.draw()
                      player.width/2,
                      player.height/2)
 
+  love.graphics.setColor(0.28, 0.64, 0.05)
+  love.graphics.polygon("line",
+    player.body:getWorldPoints(player.shape:getPoints()))
   speedText = string.format("%d m/s", player.speed)
 
   love.graphics.print(speedText, player.body:getX()+14, player.body:getY()-10)

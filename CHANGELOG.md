@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Make road based on player position and angle.
 
+### Changed
+- Draw ordering to ensure player sprite is not color of bounding box.
+
 ## [0.2.5] - 2018-10-02
 ### Changed
 - Windows packaging procedure to unzip LÖVE before `cat`ing with game package.
