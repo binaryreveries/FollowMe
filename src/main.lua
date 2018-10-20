@@ -2,6 +2,7 @@
 -- Move car around using the arrow keys.
 -- Compatible with löve 0.10.0 and up
 
+local assets = nil
 
 turnMultiplier = 8
 wheelForceFriction = 50
@@ -27,6 +28,7 @@ end
 
 
 function love.load()
+  assets = require "assets" -- load assets
   love.physics.setMeter(16) -- length of a meter in our world is 16px
   world = love.physics.newWorld(0, 0, true) -- create a world with no horizontal or vertical gravity
 
@@ -36,7 +38,7 @@ function love.load()
   -- create car
   player = {}
   -- set sprite
-  player.img = love.graphics.newImage("car.png")
+  player.img = assets.img.car
   -- set dimensions based on sprite
   player.width = player.img:getWidth()
   player.height = player.img:getHeight()
@@ -64,7 +66,7 @@ function love.load()
   objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
   objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape)
 
-  border = love.graphics.newImage("border.png")
+  border = assets.img.border
   border:setWrap("repeat")
   borderQuad = love.graphics.newQuad(0, 0, width, border:getHeight(), border:getDimensions())
 
@@ -89,7 +91,7 @@ function love.load()
   
   roads = {}
   
-  roadSkin = love.graphics.newImage("road.png")
+  roadSkin = assets.img.road
   roads[1] = makeRoad(player)
   
   objects.frontier = {}
