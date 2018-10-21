@@ -3,6 +3,7 @@
 -- Compatible with löve 0.10.0 and up
 
 local assets = nil
+local ground = nil
 local height = 650
 local player = nil
 local roadJog = 40
@@ -31,16 +32,15 @@ function love.load()
   love.physics.setMeter(16) -- length of a meter in our world is 16px
   world = love.physics.newWorld(0, 0, true) -- create a world with no horizontal or vertical gravity
 
+  -- create ground
+  ground = require "entities/ground"
+  ground:load(world, width, height)
 
   -- create car
   player = require "entities/player"
-
-  objects = {} -- collection of physical objects
-  objects.ground = {}
-  objects.ground.body = love.physics.newBody(world, width/2, height/2)
-  objects.ground.shape = love.physics.newRectangleShape(width, height)
   player:load(world, width, height)
 
+  objects = {}
   objects.block1 = {}
   objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
   objects.block1.mass = 10
@@ -110,10 +110,7 @@ function love.update(dt)
 end
 
 function love.draw()
-  love.graphics.setColor(0.2, 0.2, 0.2)
-  love.graphics.polygon("fill",
-    objects.ground.body:getWorldPoints(objects.ground.shape:getPoints()))
-
+  ground:draw()
   love.graphics.setColor(0.28, 0.64, 0.05)
   love.graphics.polygon("fill",
     objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
