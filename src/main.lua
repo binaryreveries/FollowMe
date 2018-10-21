@@ -94,7 +94,8 @@ function love.update(dt)
     world:update(dt) -- put the world in motion!
   end
 
-  player:update(dt)
+  player:update(ground, width, height, dt)
+
   -- paving new road
   -- detect if player is triggering new road creation and calculate location of new road
   distance = love.physics.getDistance(player.fixture, objects.frontier.fixture)

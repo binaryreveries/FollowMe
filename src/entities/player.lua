@@ -58,7 +58,7 @@ function player:draw()
   love.graphics.print(speedText, self.body:getX()+14, self.body:getY()-10)
 end
 
-function player:update(dt)
+function player:update(ground, width, height, dt)
   for index, joint in pairs(self.joints) do
     joint:destroy()
   end
@@ -93,10 +93,10 @@ function player:update(dt)
   x3, y3 = rotateVector(-self.width/2, self.height/2, angle) -- rear left
   x4, y4 = rotateVector(self.width/2, self.height/2, angle) -- rear right
 
-  table.insert(self.joints, createJoint(objects.ground.body, self.body, x + x1, y + y1, self.wheelForceFriction, self.wheelTorqueFriction))
-  table.insert(self.joints, createJoint(objects.ground.body, self.body, x + x2, y + y2, self.wheelForceFriction, self.wheelTorqueFriction))
-  table.insert(self.joints, createJoint(objects.ground.body, self.body, x + x3, y + y3, self.wheelForceFriction, self.wheelTorqueFriction))
-  table.insert(self.joints, createJoint(objects.ground.body, self.body, x + x4, y + y4, self.wheelForceFriction, self.wheelTorqueFriction))
+  table.insert(self.joints, createJoint(ground.body, self.body, x + x1, y + y1, self.wheelForceFriction, self.wheelTorqueFriction))
+  table.insert(self.joints, createJoint(ground.body, self.body, x + x2, y + y2, self.wheelForceFriction, self.wheelTorqueFriction))
+  table.insert(self.joints, createJoint(ground.body, self.body, x + x3, y + y3, self.wheelForceFriction, self.wheelTorqueFriction))
+  table.insert(self.joints, createJoint(ground.body, self.body, x + x4, y + y4, self.wheelForceFriction, self.wheelTorqueFriction))
 
   vx, vy = self.body:getLinearVelocity()
   self.speed = math.sqrt((vx * vx) + (vy * vy))
