@@ -22,6 +22,7 @@ function makeRoad(leader)
   return road
 end
 
+local world = nil
 
 function love.load()
   assets = require "assets" -- load assets
@@ -89,7 +90,9 @@ function love.load()
 end
 
 function love.update(dt)
-  world:update(dt) -- put the world in motion!
+  if world then
+    world:update(dt) -- put the world in motion!
+  end
 
   player:update(dt)
   -- paving new road
