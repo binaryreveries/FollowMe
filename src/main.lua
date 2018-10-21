@@ -3,27 +3,12 @@
 -- Compatible with löve 0.10.0 and up
 
 local assets = nil
+local block1 = nil
+local border = nil
 local ground = nil
 local height = 650
 local player = nil
-local roadJog = 40
-
-function makeRoad(leader)
-  road = {}
-  road.img = roadSkin
-  road.width = road.img:getWidth()
-  road.height = road.img:getHeight()
-  road.body = love.physics.newBody(world)
-  road.body:setAngle(leader.trajectory)
-  fx = math.sin(road.body:getAngle()) * (road.height/2)
-  fy = math.cos(road.body:getAngle()) * -(road.height/2)
-  road.body:setX(leader.body:getX() + fx)
-  road.body:setY(leader.body:getY() + fy)
-  road.shape = love.physics.newRectangleShape(0, 0, road.width, road.height)
-
-  return road
-end
-
+local road = nil
 local width = 650
 local world = nil
 
@@ -71,19 +56,9 @@ function love.load()
   objects.borderBottom.fixture = love.physics.newFixture(objects.borderBottom.body, objects.borderBottom.shape)
 
   
-  roads = {}
-  
-  roadSkin = assets.img.road
-  roads[1] = makeRoad(player)
-  
-  objects.frontier = {}
-  objects.frontier.body = love.physics.newBody(world)
-  objects.frontier.body:setX(player.body:getX()-50)
-  objects.frontier.body:setY(player.body:getY())
-  objects.frontier.shape = love.physics.newRectangleShape(roads[1].width, roads[1].height)
-  objects.frontier.fixture = love.physics.newFixture(objects.frontier.body, objects.frontier.shape)
-  objects.frontier.fixture:setSensor(true)
-  
+  -- create road
+  road = require "entities/road"
+  road:load(player, world, width, height)
   
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
   love.window.setMode(width, height)
@@ -97,17 +72,7 @@ function love.update(dt)
   player:update(ground, width, height, dt)
 
   -- paving new road
-  -- detect if player is triggering new road creation and calculate location of new road
-  distance = love.physics.getDistance(player.fixture, objects.frontier.fixture)
-  if (distance < roadJog/10) then
-    objects.frontier.body:setAngle(player.trajectory)
-    fy = (roadJog) * math.sin(objects.frontier.body:getAngle())  
-    fx = (roadJog) * math.cos(objects.frontier.body:getAngle())
-    objects.frontier.body:setX(player.body:getX() + fx)
-    objects.frontier.body:setY(player.body:getY() + fy)
-     
-    table.insert(roads, makeRoad(player))
-  end
+  road:update(player, world, dt)
 end
 
 function love.draw()
@@ -121,18 +86,8 @@ function love.draw()
 
   love.graphics.draw(objects.borderBottom.img, objects.borderBottom.quad, 0, objects.borderBottom.body:getY(), 0, 1, -1)
 
-  for index, road in pairs(roads) do
-    love.graphics.draw(road.img,
-                       road.body:getX(),
-                       road.body:getY(), -- need to shift so that car is in center, using width, height and Angle
-                       road.body:getAngle())
-  end                   
-  love.graphics.polygon("fill",
-    objects.frontier.body:getWorldPoints(objects.frontier.shape:getPoints())
-  )
-  
-  distText = string.format(distance)
-  love.graphics.print(distText, objects.frontier.body:getX() + 20, objects.frontier.body:getY() + 20)
+  road:draw()
+
   player:draw()
 end
 
