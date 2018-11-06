@@ -2,11 +2,11 @@ local assets = require "assets"
 local road = {}
 
 -- create ground
-function road:load(player, world, width, height)
+function road:load(player, width, height)
   self.roadjog = 40
   self.segments = {}
   self.skin = assets.img.road
-  self:addsegment(player, world)
+  self:addsegment(player)
 
   self.frontier = {}
   self.frontier.body = love.physics.newBody(world)
@@ -35,7 +35,7 @@ function road:draw()
                       self.frontier.body:getY() + 20)
 end
 
-function road:update(player, world, dt)
+function road:update(player, dt)
   -- detect if player is triggering new road creation and calculate location of new road
   self.distance = love.physics.getDistance(player.fixture, self.frontier.fixture)
   if (self.distance < self.roadjog/10) then
@@ -44,13 +44,13 @@ function road:update(player, world, dt)
     fx = (self.roadjog) * math.cos(self.frontier.body:getAngle())
     self.frontier.body:setX(player.body:getX() + fx)
     self.frontier.body:setY(player.body:getY() + fy)
-    self:addsegment(player, world)
+    self:addsegment(player)
   end
 end
 
 -- utils
 
-function road:addsegment(leader, world)
+function road:addsegment(leader)
   segment = {}
   segment.img = self.skin
   segment.width = segment.img:getWidth()

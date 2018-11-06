@@ -2,6 +2,8 @@
 -- Move car around using the arrow keys.
 -- Compatible with löve 0.10.0 and up
 
+world = nil
+
 local assets = nil
 local block1 = nil
 local border = nil
@@ -10,7 +12,6 @@ local height = 650
 local player = nil
 local road = nil
 local width = 650
-local world = nil
 
 function love.load()
   assets = require "assets" -- load assets
@@ -19,11 +20,11 @@ function love.load()
 
   -- create ground
   ground = require "entities/ground"
-  ground:load(world, width, height)
+  ground:load(width, height)
 
   -- create car
   player = require "entities/player"
-  player:load(world, width, height)
+  player:load(width, height)
 
   objects = {}
   objects.block1 = {}
@@ -58,7 +59,7 @@ function love.load()
   
   -- create road
   road = require "entities/road"
-  road:load(player, world, width, height)
+  road:load(player, width, height)
   
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
   love.window.setMode(width, height)
@@ -72,7 +73,7 @@ function love.update(dt)
   player:update(ground, width, height, dt)
 
   -- paving new road
-  road:update(player, world, dt)
+  road:update(player, dt)
 end
 
 function love.draw()

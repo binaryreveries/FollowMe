@@ -2,7 +2,7 @@ local assets = require "assets"
 local player = { }
 
 -- create car
-function player:load(world, width, height)
+function player:load(width, height)
   self.acceleration = 300
 
   -- set sprite
