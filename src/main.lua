@@ -70,7 +70,7 @@ function love.update(dt)
     world:update(dt) -- put the world in motion!
   end
 
-  player:update(ground, width, height, dt)
+  player:update(ground, dt)
 
   -- paving new road
   road:update(player, dt)

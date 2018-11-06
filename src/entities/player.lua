@@ -58,7 +58,7 @@ function player:draw()
   love.graphics.print(speedText, self.body:getX()+14, self.body:getY()-10)
 end
 
-function player:update(ground, width, height, dt)
+function player:update(ground, dt)
   for index, joint in pairs(self.joints) do
     joint:destroy()
   end
@@ -100,12 +100,6 @@ function player:update(ground, width, height, dt)
 
   vx, vy = self.body:getLinearVelocity()
   self.speed = math.sqrt((vx * vx) + (vy * vy))
-
-  if (x < 0) then
-    self.body:setPosition(width, y)
-  elseif (x > width) then
-    self.body:setPosition(0, y)
-  end
 
   -- get self trajectory for new road object angle
   lastTrajectory = self.trajectory 
