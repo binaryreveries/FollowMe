@@ -33,14 +33,6 @@ function player:load(width, height)
 end
 
 function player:draw()
-  -- misc print statements for troubleshooting
-  love.graphics.print(self.lastX, 20, 20)
-  love.graphics.print(self.lastY, 20, 40)
-  love.graphics.print(self.dx, 20, 60)
-  love.graphics.print(self.dy, 20, 80)
-  love.graphics.print(self.trajectory, 20, 100)
-  love.graphics.print(self.deltaTrajectory, 20, 120)
-  
   love.graphics.draw(self.img,
                      self.body:getX(),
                      self.body:getY(),
@@ -49,13 +41,6 @@ function player:draw()
                      1,
                      self.width/2,
                      self.height/2)
-
-  love.graphics.setColor(0.28, 0.64, 0.05)
-  love.graphics.polygon("line",
-    self.body:getWorldPoints(self.shape:getPoints()))
-  speedText = string.format("%d m/s", self.speed)
-
-  love.graphics.print(speedText, self.body:getX()+14, self.body:getY()-10)
 end
 
 function player:update(ground, dt)

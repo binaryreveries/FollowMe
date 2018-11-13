@@ -29,10 +29,6 @@ function road:draw()
   love.graphics.polygon("fill",
     self.frontier.body:getWorldPoints(self.frontier.shape:getPoints())
   )
-
-  love.graphics.print(tostring(self.distance),
-                      self.frontier.body:getX() + 20,
-                      self.frontier.body:getY() + 20)
 end
 
 function road:update(player, dt)
