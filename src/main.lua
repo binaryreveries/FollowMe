@@ -1,6 +1,7 @@
 -- FollowMe
 -- Move car around using the arrow keys.
 -- Compatible with löve 0.10.0 and up
+tiny = require "lib.tiny"
 
 world = nil
 
