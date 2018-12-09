@@ -53,18 +53,18 @@ function road:draw()
   love.graphics.polygon("fill",
     self.frontier.main.body:getWorldPoints(self.frontier.main.shape:getPoints())
   )
-  
-  love.graphics.setColor(255, 0, 0, 255)
-  love.graphics.polygon("fill",
-    self.frontier.left.body:getWorldPoints(self.frontier.left.shape:getPoints())
-  )
   love.graphics.setColor(0, 255, 0, 255)
   love.graphics.polygon("fill",
     self.frontier.right.body:getWorldPoints(self.frontier.right.shape:getPoints())
   )
+  love.graphics.setColor(255, 0, 0, 255)
+  love.graphics.polygon("fill",
+    self.frontier.left.body:getWorldPoints(self.frontier.left.shape:getPoints())
+  )
+
 end
 
-function road:update(angle, isLeft)
+function road:update(angle, roadShift)
   self:addsegment()
   
   deltaMainX = (self.roadjog) * math.cos(angle)
@@ -85,13 +85,19 @@ function road:update(angle, isLeft)
   deltaRightX = self.frontier.main.length/4 * math.cos(rightAngle)
   deltaRightY = self.frontier.main.length/4 * math.sin(rightAngle)
   
-  if isLeft then
-    slideAngle = leftAngle
+  if roadShift == "center" then
+    deltaSlideX = 0
+    deltaSlideY = 0
+    slideAngle = 0
   else
-    slideAngle = rightAngle
+    if roadShift == "left" then
+      slideAngle = leftAngle
+    elseif roadShift == "right" then
+      slideAngle = rightAngle
+    end
+    deltaSlideX = self.roadjog/10 * math.cos(slideAngle)
+    deltaSlideY = self.roadjog/10 * math.sin(slideAngle)
   end
-  deltaSlideX = self.roadjog/10 * math.cos(slideAngle)
-  deltaSlideY = self.roadjog/10 * math.sin(slideAngle)
   
   self.frontier.main.body:setX(mainX + deltaMainX + deltaSlideX)
   self.frontier.main.body:setY(mainY + deltaMainY + deltaSlideY)

@@ -7,10 +7,10 @@ local assets = nil
 --local block1 = nil
 local border = nil
 local ground = nil
-local height = 650
+local height = 1050
 local player = nil
 local road = nil
-local width = 650
+local width = 1050
 
 function love.load()
   assets = require "assets" -- load assets
@@ -78,8 +78,14 @@ function love.update(dt)
     -- paving new road
     leftDistance = love.physics.getDistance(player.fixture, road.frontier.left.fixture)
     rightDistance = love.physics.getDistance(player.fixture, road.frontier.right.fixture)
-    isLeft = leftDistance < rightDistance
-    road:update(player:getTrajectory(), isLeft)
+    if leftDistance < rightDistance then
+      roadShift = "left"
+    elseif leftDistance > rightDistance then
+      roadShift = "right"
+    else
+      roadShift = "center"
+    end
+    road:update(player:getTrajectory(), roadShift)
     distance = love.physics.getDistance(player.fixture, road.frontier.main.fixture)
   end
 
