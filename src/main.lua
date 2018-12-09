@@ -1,62 +1,31 @@
 -- FollowMe
 -- Move car around using the arrow keys.
 -- Compatible with löve 0.10.0 and up
+world = nil
 
-
-turnMultiplier = 8
-wheelForceFriction = 50
-wheelTorqueFriction = 1
-roadJog = 40
-joints = {}
-
-function makeRoad(leader)
-  road = {}
-  road.img = roadSkin
-  road.width = road.img:getWidth()
-  road.height = road.img:getHeight()
-  road.body = love.physics.newBody(world)
-  road.body:setAngle(leader.trojectory)
-  fx = math.sin(road.body:getAngle()) * (road.height/2)
-  fy = math.cos(road.body:getAngle()) * -(road.height/2)
-  road.body:setX(leader.body:getX() + fx)
-  road.body:setY(leader.body:getY() + fy)
-  road.shape = love.physics.newRectangleShape(0, 0, road.width, road.height)
-
-  return road
-end
-
+local assets = nil
+local block1 = nil
+local border = nil
+local ground = nil
+local height = 650
+local player = nil
+local road = nil
+local width = 650
 
 function love.load()
+  assets = require "assets" -- load assets
   love.physics.setMeter(16) -- length of a meter in our world is 16px
   world = love.physics.newWorld(0, 0, true) -- create a world with no horizontal or vertical gravity
 
-  width = 650
-  height = 650
+  -- create ground
+  ground = require "entities/ground"
+  ground:load(width, height)
 
   -- create car
-  player = {}
-  -- set sprite
-  player.img = love.graphics.newImage("car.png")
-  -- set dimensions based on sprite
-  player.width = player.img:getWidth()
-  player.height = player.img:getHeight()
-  -- place car in center of world and make it dynamic so it can move
-  player.body = love.physics.newBody(world, width/2, height/2, "dynamic")
-  player.shape = love.physics.newRectangleShape(0, 0, player.width, player.height)
-  -- attach fixture to body and set density to 1 (density increases mass)
-  player.fixture = love.physics.newFixture(player.body, player.shape, 1)
-  player.acceleration = 300
-  player.lastX = player.body:getX()
-  player.lastY = player.body:getY()
-  player.dx = player.body:getX() - player.lastX
-  player.dy = player.body:getY() - player.lastY
-  player.trojectory = math.atan2(player.dx, player.dy)
+  player = require "entities/player"
+  player:load(width, height)
 
-  objects = {} -- collection of physical objects
-  objects.ground = {}
-  objects.ground.body = love.physics.newBody(world, width/2, height/2)
-  objects.ground.shape = love.physics.newRectangleShape(width, height)
-
+  objects = {}
   objects.block1 = {}
   objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
   objects.block1.mass = 10
@@ -64,7 +33,7 @@ function love.load()
   objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
   objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape)
 
-  border = love.graphics.newImage("border.png")
+  border = assets.img.border
   border:setWrap("repeat")
   borderQuad = love.graphics.newQuad(0, 0, width, border:getHeight(), border:getDimensions())
 
@@ -87,119 +56,33 @@ function love.load()
   objects.borderBottom.fixture = love.physics.newFixture(objects.borderBottom.body, objects.borderBottom.shape)
 
   
-  roads = {}
-  
-  roadSkin = love.graphics.newImage("road.png")
-  roads[1] = makeRoad(player)
-  
-  objects.frontier = {}
-  objects.frontier.body = love.physics.newBody(world)
-  objects.frontier.body:setX(player.body:getX()-50)
-  objects.frontier.body:setY(player.body:getY())
-  objects.frontier.shape = love.physics.newRectangleShape(roads[1].width, roads[1].height)
-  objects.frontier.fixture = love.physics.newFixture(objects.frontier.body, objects.frontier.shape)
-  objects.frontier.fixture:setSensor(true)
-  
+  -- create road
+  road = require "entities/road"
+  road:load(player.body:getX()-50, player.body:getY(), 8, 128)
   
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
   love.window.setMode(width, height)
 end
 
--- rotate a vector `x, y` in 2D space by `angle`
--- x2=cosβx1−sinβy1
--- y2=sinβx1+cosβy1
-function rotateVector(x, y, angle)
-  s = math.sin(angle)
-  c = math.cos(angle)
-  return x*c - y*s, x*s + y*c
-end
-
-function createJoint(surface, object, x, y, maxForceFriction, maxTorqueFriction)
-  j = love.physics.newFrictionJoint(surface, object, x, y, true)
-  j:setMaxForce(object:getMass() * maxForceFriction)
-  j:setMaxTorque(object:getInertia() * maxTorqueFriction)
-  return j
-end
-
 function love.update(dt)
-  world:update(dt) -- put the world in motion!
-
-  for index, joint in pairs(joints) do
-    joint:destroy()
+  if world then
+    world:update(dt) -- put the world in motion!
   end
 
-  joints = {}
-
-  -- setup keyboard event handling
-  inertia = player.body:getInertia()
-  if love.keyboard.isDown("a") then
-    player.body:applyTorque(-turnMultiplier * inertia)
-  elseif love.keyboard.isDown("d") then
-    player.body:applyTorque(turnMultiplier * inertia)
-  end
-
-  angle = player.body:getAngle()
-  mass = player.body:getMass()
-  if love.keyboard.isDown("w") then
-    fx = mass * -player.acceleration * math.cos(angle)
-    fy = mass * -player.acceleration * math.sin(angle)
-    player.body:applyForce(fx, fy)
-  elseif love.keyboard.isDown("s") then
-    fx = mass * player.acceleration * math.cos(angle)
-    fy = mass * player.acceleration * math.sin(angle)
-    player.body:applyForce(fx, fy)
-  end
-
-  x, y = player.body:getWorldCenter()
-
-  -- wheel coordinates
-  x1, y1 = rotateVector(-player.width/2, -player.height/2, angle) -- front left
-  x2, y2 = rotateVector(player.width/2, -player.height/2, angle) -- front right
-  x3, y3 = rotateVector(-player.width/2, player.height/2, angle) -- rear left
-  x4, y4 = rotateVector(player.width/2, player.height/2, angle) -- rear right
-
-  table.insert(joints, createJoint(objects.ground.body, player.body, x + x1, y + y1, wheelForceFriction, wheelTorqueFriction))
-  table.insert(joints, createJoint(objects.ground.body, player.body, x + x2, y + y2, wheelForceFriction, wheelTorqueFriction))
-  table.insert(joints, createJoint(objects.ground.body, player.body, x + x3, y + y3, wheelForceFriction, wheelTorqueFriction))
-  table.insert(joints, createJoint(objects.ground.body, player.body, x + x4, y + y4, wheelForceFriction, wheelTorqueFriction))
-
-  vx, vy = player.body:getLinearVelocity()
-  player.speed = math.sqrt((vx * vx) + (vy * vy))
-
-  if (x < 0) then
-    player.body:setPosition(width, y)
-  elseif (x > width) then
-    player.body:setPosition(0, y)
-  end
-  
-  -- paving new road
-  -- get player trojectory for new road object angle
-  lastTrojectory = player.trojectory 
-  player.dx = player.body:getX() - player.lastX
-  player.dy = player.body:getY() - player.lastY
-  player.lastX = player.body:getX()
-  player.lastY = player.body:getY()
-  player.trojectory = math.atan2(player.dy, player.dx)
-  deltaTrojectory = math.abs(lastTrojectory - player.trojectory)
+  player:update(ground, dt)
 
   -- detect if player is triggering new road creation and calculate location of new road
-  distance = love.physics.getDistance(player.fixture, objects.frontier.fixture)
-  if (distance < roadJog/10) then
-    objects.frontier.body:setAngle(player.trojectory)
-    fy = (roadJog) * math.sin(objects.frontier.body:getAngle())  
-    fx = (roadJog) * math.cos(objects.frontier.body:getAngle())
-    objects.frontier.body:setX(player.body:getX() + fx)
-    objects.frontier.body:setY(player.body:getY() + fy)
-     
-    table.insert(roads, makeRoad(player))
+  distance = love.physics.getDistance(player.fixture, road.frontier.fixture)
+  -- collided with frontier
+  if distance < road.roadjog/10 then
+    -- paving new road
+    road:update(player.body:getX(), player.body:getY(), player:getTrajectory())
   end
+
 end
 
 function love.draw()
-  love.graphics.setColor(0.2, 0.2, 0.2)
-  love.graphics.polygon("fill",
-    objects.ground.body:getWorldPoints(objects.ground.shape:getPoints()))
-
+  ground:draw()
   love.graphics.setColor(0.28, 0.64, 0.05)
   love.graphics.polygon("fill",
     objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
@@ -209,42 +92,9 @@ function love.draw()
 
   love.graphics.draw(objects.borderBottom.img, objects.borderBottom.quad, 0, objects.borderBottom.body:getY(), 0, 1, -1)
 
-  for index, road in pairs(roads) do
-    love.graphics.draw(road.img,
-                       road.body:getX(),
-                       road.body:getY(), -- need to shift so that car is in center, using width, height and Angle
-                       road.body:getAngle())
-  end                   
-  love.graphics.polygon("fill",
-    objects.frontier.body:getWorldPoints(objects.frontier.shape:getPoints())
-  )
-  
-  -- misc print statements for troubleshooting
-  love.graphics.print(player.lastX, 20, 20)
-  love.graphics.print(player.lastY, 20, 40)
-  love.graphics.print(player.dx, 20, 60)
-  love.graphics.print(player.dy, 20, 80)
-  love.graphics.print(player.trojectory, 20, 100)
-  love.graphics.print(deltaTrojectory, 20, 120)
-  
-  distText = string.format(distance)
-  love.graphics.print(distText, objects.frontier.body:getX() + 20, objects.frontier.body:getY() + 20)
-    
-  love.graphics.draw(player.img,
-                     player.body:getX(),
-                     player.body:getY(),
-                     player.body:getAngle() - math.pi/2,
-                     1,
-                     1,
-                     player.width/2,
-                     player.height/2)
+  road:draw()
 
-  love.graphics.setColor(0.28, 0.64, 0.05)
-  love.graphics.polygon("line",
-    player.body:getWorldPoints(player.shape:getPoints()))
-  speedText = string.format("%d m/s", player.speed)
-
-  love.graphics.print(speedText, player.body:getX()+14, player.body:getY()-10)
+  player:draw()
 end
 
 function love.filedropped(file)
