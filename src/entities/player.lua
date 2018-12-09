@@ -93,6 +93,10 @@ function player:update(ground, dt)
   self.lastY = self.body:getY()
 end
 
+function player:getTrajectory()
+  return math.atan2(self.dy, self.dx)
+end
+
 -- utils
 
 function createJoint(surface, object, x, y, maxForceFriction, maxTorqueFriction)

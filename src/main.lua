@@ -76,8 +76,7 @@ function love.update(dt)
   -- collided with frontier
   if distance < road.roadjog/10 then
     -- paving new road
-    angle = math.atan2(player.dy, player.dx)
-    road:update(player.body:getX(), player.body:getY(), angle)
+    road:update(player.body:getX(), player.body:getY(), player:getTrajectory())
   end
 
 end
