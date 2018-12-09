@@ -6,15 +6,38 @@ function road:load(x, y, width, length)
   self.roadjog = 1
   self.segments = {}
   self.skin = assets.img.road
-
+  
   self.frontier = {}
-  self.frontier.body = love.physics.newBody(world)
-  self.frontier.body:setX(x)
-  self.frontier.body:setY(y)
-  self.frontier.shape = love.physics.newRectangleShape(width, length)
-  self.frontier.fixture = love.physics.newFixture(self.frontier.body,
-                                                  self.frontier.shape)
-  self.frontier.fixture:setSensor(true)
+  
+  self.frontier.main = {}
+  self.frontier.main.body = love.physics.newBody(world)
+  self.frontier.main.body:setX(x)
+  self.frontier.main.body:setY(y)
+  self.frontier.main.shape = love.physics.newRectangleShape(width, length)
+  self.frontier.main.fixture = love.physics.newFixture(self.frontier.main.body,
+                                                  self.frontier.main.shape)
+  self.frontier.main.fixture:setSensor(true)
+  self.frontier.main.deltaAngle = self.frontier.main.body:getAngle()
+  
+  self.frontier.left = {}
+  self.frontier.left.body = love.physics.newBody(world)
+  self.frontier.left.body:setX(x)
+  self.frontier.left.body:setY(y+length/4)
+  self.frontier.left.shape = love.physics.newRectangleShape(width, length/2)
+  self.frontier.left.fixture = love.physics.newFixture(self.frontier.left.body,
+                                                  self.frontier.left.shape)
+  self.frontier.left.fixture:setSensor(true)
+
+  
+  self.frontier.right = {}
+  self.frontier.right.body = love.physics.newBody(world)
+  self.frontier.right.body:setX(x)
+  self.frontier.right.body:setY(y-length/4)
+  self.frontier.right.shape = love.physics.newRectangleShape(width, length/2)
+  self.frontier.right.fixture = love.physics.newFixture(self.frontier.right.body,
+                                                  self.frontier.right.shape)
+  self.frontier.right.fixture:setSensor(true)
+
 end
 
 function road:draw()
@@ -25,18 +48,28 @@ function road:draw()
                        segment.body:getAngle())
   end
   love.graphics.polygon("fill",
-    self.frontier.body:getWorldPoints(self.frontier.shape:getPoints())
+    self.frontier.main.body:getWorldPoints(self.frontier.main.shape:getPoints())
+  )
+  
+  love.graphics.setColor(255, 0, 0, 255)
+  love.graphics.polygon("fill",
+    self.frontier.left.body:getWorldPoints(self.frontier.left.shape:getPoints())
+  )
+  love.graphics.setColor(0, 255, 0, 255)
+  love.graphics.polygon("fill",
+    self.frontier.right.body:getWorldPoints(self.frontier.right.shape:getPoints())
   )
 end
 
 function road:update(angle)
-  self.frontier.body:setAngle(angle)
-  x = self.frontier.body:getX()
-  y = self.frontier.body:getY()
-  fy = (self.roadjog) * math.sin(self.frontier.body:getAngle())
-  fx = (self.roadjog) * math.cos(self.frontier.body:getAngle())
-  self.frontier.body:setX(x + fx)
-  self.frontier.body:setY(y + fy)
+  self.frontier.main.deltaAngle = angle - self.frontier.main.body:getAngle()
+  self.frontier.main.body:setAngle(angle)
+  x = self.frontier.main.body:getX()
+  y = self.frontier.main.body:getY()
+  fy = (self.roadjog) * math.sin(self.frontier.main.body:getAngle())
+  fx = (self.roadjog) * math.cos(self.frontier.main.body:getAngle())
+  self.frontier.main.body:setX(x + fx)
+  self.frontier.main.body:setY(y + fy)
   self:addsegment()
 end
 
@@ -48,11 +81,11 @@ function road:addsegment()
   segment.width = segment.img:getWidth()
   segment.height = segment.img:getHeight()
   segment.body = love.physics.newBody(world)
-  segment.body:setAngle(self.frontier.body:getAngle())
+  segment.body:setAngle(self.frontier.main.body:getAngle())
   fx = math.sin(segment.body:getAngle()) * (segment.height/2)
   fy = math.cos(segment.body:getAngle()) * -(segment.height/2)
-  segment.body:setX(self.frontier.body:getX() + fx)
-  segment.body:setY(self.frontier.body:getY() + fy)
+  segment.body:setX(self.frontier.main.body:getX() + fx)
+  segment.body:setY(self.frontier.main.body:getY() + fy)
   segment.shape = love.physics.newRectangleShape(0, 0, segment.width, segment.height)
   table.insert(self.segments, segment)
 end
