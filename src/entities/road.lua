@@ -3,7 +3,7 @@ local road = {}
 
 -- initialize road at (x, y) with each segment of given width and length
 function road:load(x, y, width, length)
-  self.roadjog = 40
+  self.roadjog = 1
   self.segments = {}
   self.skin = assets.img.road
 
@@ -29,8 +29,10 @@ function road:draw()
   )
 end
 
-function road:update(x, y, angle)
+function road:update(angle)
   self.frontier.body:setAngle(angle)
+  x = self.frontier.body:getX()
+  y = self.frontier.body:getY()
   fy = (self.roadjog) * math.sin(self.frontier.body:getAngle())
   fx = (self.roadjog) * math.cos(self.frontier.body:getAngle())
   self.frontier.body:setX(x + fx)

@@ -4,7 +4,7 @@
 world = nil
 
 local assets = nil
-local block1 = nil
+--local block1 = nil
 local border = nil
 local ground = nil
 local height = 650
@@ -26,12 +26,12 @@ function love.load()
   player:load(width, height)
 
   objects = {}
-  objects.block1 = {}
-  objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
-  objects.block1.mass = 10
-  objects.block1.body:setMass(objects.block1.mass)
-  objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
-  objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape)
+  -- objects.block1 = {}
+  -- objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
+  -- objects.block1.mass = 10
+  -- objects.block1.body:setMass(objects.block1.mass)
+  -- objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
+  -- objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape)
 
   border = assets.img.border
   border:setWrap("repeat")
@@ -76,16 +76,16 @@ function love.update(dt)
   -- collided with frontier
   if distance < road.roadjog/10 then
     -- paving new road
-    road:update(player.body:getX(), player.body:getY(), player:getTrajectory())
+    road:update(player:getTrajectory())
   end
 
 end
 
 function love.draw()
   ground:draw()
-  love.graphics.setColor(0.28, 0.64, 0.05)
-  love.graphics.polygon("fill",
-    objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
+  -- love.graphics.setColor(0.28, 0.64, 0.05)
+  -- love.graphics.polygon("fill",
+    -- objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
 
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.draw(objects.borderTop.img, objects.borderTop.quad, 0, 0)
