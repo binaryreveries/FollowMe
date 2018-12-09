@@ -17,7 +17,7 @@ function road:load(x, y, width, length)
   self.frontier.main.fixture = love.physics.newFixture(self.frontier.main.body,
                                                   self.frontier.main.shape)
   self.frontier.main.fixture:setSensor(true)
-  self.frontier.main.deltaAngle = self.frontier.main.body:getAngle()
+  self.frontier.main.length = length
   
   self.frontier.left = {}
   self.frontier.left.body = love.physics.newBody(world)
@@ -37,6 +37,9 @@ function road:load(x, y, width, length)
   self.frontier.right.fixture = love.physics.newFixture(self.frontier.right.body,
                                                   self.frontier.right.shape)
   self.frontier.right.fixture:setSensor(true)
+  
+  leftAngle = 0
+  rightAngle = 0
 
 end
 
@@ -61,17 +64,45 @@ function road:draw()
   )
 end
 
-function road:update(angle)
-  self.frontier.main.deltaAngle = angle - self.frontier.main.body:getAngle()
-  self.frontier.main.body:setAngle(angle)
-  x = self.frontier.main.body:getX()
-  y = self.frontier.main.body:getY()
-  fy = (self.roadjog) * math.sin(self.frontier.main.body:getAngle())
-  fx = (self.roadjog) * math.cos(self.frontier.main.body:getAngle())
-  self.frontier.main.body:setX(x + fx)
-  self.frontier.main.body:setY(y + fy)
+function road:update(angle, isLeft)
   self:addsegment()
+  
+  deltaMainX = (self.roadjog) * math.cos(angle)
+  deltaMainY = (self.roadjog) * math.sin(angle)
+  mainX = self.frontier.main.body:getX()
+  mainY = self.frontier.main.body:getY()
+  self.frontier.main.body:setAngle(angle)
+  
+  self.frontier.left.body:setAngle(angle)
+  leftAngle = angle - (math.pi/2)
+  if leftAngle < -math.pi then leftAngle = leftAngle + 2 * math.pi end
+  deltaLeftX = self.frontier.main.length/4 * math.cos(leftAngle)
+  deltaLeftY = self.frontier.main.length/4 * math.sin(leftAngle)
+
+  self.frontier.right.body:setAngle(angle)
+  rightAngle = angle + (math.pi/2)
+  if rightAngle > math.pi then rightAngle = rightAngle - 2 * math.pi end
+  deltaRightX = self.frontier.main.length/4 * math.cos(rightAngle)
+  deltaRightY = self.frontier.main.length/4 * math.sin(rightAngle)
+  
+  if isLeft then
+    slideAngle = leftAngle
+  else
+    slideAngle = rightAngle
+  end
+  deltaSlideX = self.roadjog/10 * math.cos(slideAngle)
+  deltaSlideY = self.roadjog/10 * math.sin(slideAngle)
+  
+  self.frontier.main.body:setX(mainX + deltaMainX + deltaSlideX)
+  self.frontier.main.body:setY(mainY + deltaMainY + deltaSlideY)
+  
+  self.frontier.left.body:setX(mainX + deltaMainX + deltaLeftX + deltaSlideX)
+  self.frontier.left.body:setY(mainY + deltaMainY + deltaLeftY + deltaSlideY)
+  
+  self.frontier.right.body:setX(mainX + deltaMainX + deltaRightX + deltaSlideX)
+  self.frontier.right.body:setY(mainY + deltaMainY + deltaRightY + deltaSlideY)
 end
+
 
 -- utils
 

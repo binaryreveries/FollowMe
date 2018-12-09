@@ -72,11 +72,15 @@ function love.update(dt)
   player:update(ground, dt)
 
   -- detect if player is triggering new road creation and calculate location of new road
-  distance = love.physics.getDistance(player.fixture, road.frontier.fixture)
+  distance = love.physics.getDistance(player.fixture, road.frontier.main.fixture)
   -- collided with frontier
-  if distance < road.roadjog/10 then
+  while distance == 0 do
     -- paving new road
-    road:update(player:getTrajectory())
+    leftDistance = love.physics.getDistance(player.fixture, road.frontier.left.fixture)
+    rightDistance = love.physics.getDistance(player.fixture, road.frontier.right.fixture)
+    isLeft = leftDistance < rightDistance
+    road:update(player:getTrajectory(), isLeft)
+    distance = love.physics.getDistance(player.fixture, road.frontier.main.fixture)
   end
 
 end
@@ -95,6 +99,13 @@ function love.draw()
   road:draw()
 
   player:draw()
+  --love.graphics.setColor(255, 0, 0, 255)
+  --love.graphics.print(road.frontier.leftAngle, 20, 20)
+  --love.graphics.setColor(0, 255, 0, 255)
+  --love.graphics.print(road.frontier.rightAngle, 20, 40)
+  --love.graphics.setColor(255, 255, 255, 255)
+  --love.graphics.print(road.frontier.main.body:getAngle(), 20, 60)
+
 end
 
 function love.filedropped(file)
