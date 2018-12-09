@@ -58,7 +58,7 @@ function love.load()
   
   -- create road
   road = require "entities/road"
-  road:load(player, width, height)
+  road:load(player.body:getX()-50, player.body:getY(), 8, 128)
   
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
   love.window.setMode(width, height)

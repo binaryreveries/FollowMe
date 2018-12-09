@@ -1,19 +1,17 @@
 local assets = require "assets"
 local road = {}
 
--- create ground
-function road:load(player, width, height)
+-- initialize road at (x, y) with each segment of given width and length
+function road:load(x, y, width, length)
   self.roadjog = 40
   self.segments = {}
   self.skin = assets.img.road
-  self:addsegment(player)
 
   self.frontier = {}
   self.frontier.body = love.physics.newBody(world)
-  self.frontier.body:setX(player.body:getX()-50)
-  self.frontier.body:setY(player.body:getY())
-  self.frontier.shape = love.physics.newRectangleShape(self.segments[1].width,
-                                                       self.segments[1].height)
+  self.frontier.body:setX(x)
+  self.frontier.body:setY(y)
+  self.frontier.shape = love.physics.newRectangleShape(width, length)
   self.frontier.fixture = love.physics.newFixture(self.frontier.body,
                                                   self.frontier.shape)
   self.frontier.fixture:setSensor(true)
@@ -23,7 +21,7 @@ function road:draw()
   for _, segment in pairs(self.segments) do
     love.graphics.draw(segment.img,
                        segment.body:getX(),
-                       segment.body:getY(), -- need to shift so that car is in center, using width, height and angle
+                       segment.body:getY(),
                        segment.body:getAngle())
   end
   love.graphics.polygon("fill",
@@ -33,30 +31,31 @@ end
 
 function road:update(player, dt)
   -- detect if player is triggering new road creation and calculate location of new road
-  self.distance = love.physics.getDistance(player.fixture, self.frontier.fixture)
-  if (self.distance < self.roadjog/10) then
-    self.frontier.body:setAngle(player.trajectory)
+  distance = love.physics.getDistance(player.fixture, self.frontier.fixture)
+  if (distance < self.roadjog/10) then
+    trajectory = math.atan2(player.dy, player.dx)
+    self.frontier.body:setAngle(trajectory)
     fy = (self.roadjog) * math.sin(self.frontier.body:getAngle())
     fx = (self.roadjog) * math.cos(self.frontier.body:getAngle())
     self.frontier.body:setX(player.body:getX() + fx)
     self.frontier.body:setY(player.body:getY() + fy)
-    self:addsegment(player)
+    self:addsegment()
   end
 end
 
 -- utils
 
-function road:addsegment(leader)
+function road:addsegment()
   segment = {}
   segment.img = self.skin
   segment.width = segment.img:getWidth()
   segment.height = segment.img:getHeight()
   segment.body = love.physics.newBody(world)
-  segment.body:setAngle(leader.trajectory)
+  segment.body:setAngle(self.frontier.body:getAngle())
   fx = math.sin(segment.body:getAngle()) * (segment.height/2)
   fy = math.cos(segment.body:getAngle()) * -(segment.height/2)
-  segment.body:setX(leader.body:getX() + fx)
-  segment.body:setY(leader.body:getY() + fy)
+  segment.body:setX(self.frontier.body:getX() + fx)
+  segment.body:setY(self.frontier.body:getY() + fy)
   segment.shape = love.physics.newRectangleShape(0, 0, segment.width, segment.height)
   table.insert(self.segments, segment)
 end

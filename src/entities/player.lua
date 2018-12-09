@@ -87,13 +87,10 @@ function player:update(ground, dt)
   self.speed = math.sqrt((vx * vx) + (vy * vy))
 
   -- get self trajectory for new road object angle
-  lastTrajectory = self.trajectory 
   self.dx = self.body:getX() - self.lastX
   self.dy = self.body:getY() - self.lastY
   self.lastX = self.body:getX()
   self.lastY = self.body:getY()
-  self.trajectory = math.atan2(self.dy, self.dx)
-  self.deltaTrajectory = math.abs(lastTrajectory - self.trajectory)
 end
 
 -- utils
