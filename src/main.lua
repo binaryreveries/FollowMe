@@ -71,8 +71,15 @@ function love.update(dt)
 
   player:update(ground, dt)
 
-  -- paving new road
-  road:update(player, dt)
+  -- detect if player is triggering new road creation and calculate location of new road
+  distance = love.physics.getDistance(player.fixture, road.frontier.fixture)
+  -- collided with frontier
+  if distance < road.roadjog/10 then
+    -- paving new road
+    angle = math.atan2(player.dy, player.dx)
+    road:update(player.body:getX(), player.body:getY(), angle)
+  end
+
 end
 
 function love.draw()

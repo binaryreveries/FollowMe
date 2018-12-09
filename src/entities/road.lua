@@ -29,18 +29,13 @@ function road:draw()
   )
 end
 
-function road:update(player, dt)
-  -- detect if player is triggering new road creation and calculate location of new road
-  distance = love.physics.getDistance(player.fixture, self.frontier.fixture)
-  if (distance < self.roadjog/10) then
-    trajectory = math.atan2(player.dy, player.dx)
-    self.frontier.body:setAngle(trajectory)
-    fy = (self.roadjog) * math.sin(self.frontier.body:getAngle())
-    fx = (self.roadjog) * math.cos(self.frontier.body:getAngle())
-    self.frontier.body:setX(player.body:getX() + fx)
-    self.frontier.body:setY(player.body:getY() + fy)
-    self:addsegment()
-  end
+function road:update(x, y, angle)
+  self.frontier.body:setAngle(angle)
+  fy = (self.roadjog) * math.sin(self.frontier.body:getAngle())
+  fx = (self.roadjog) * math.cos(self.frontier.body:getAngle())
+  self.frontier.body:setX(x + fx)
+  self.frontier.body:setY(y + fy)
+  self:addsegment()
 end
 
 -- utils
