@@ -27,7 +27,7 @@ function love.load()
 
   objects = {}
   objects.block1 = {}
-  objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
+  objects.block1.body = love.physics.newBody(world, 200, 500, "dynamic")
   objects.block1.mass = 10
   objects.block1.body:setMass(objects.block1.mass)
   objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
