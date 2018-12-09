@@ -52,19 +52,24 @@ function player:update(ground, dt)
 
   -- setup keyboard event handling
   inertia = self.body:getInertia()
-  if love.keyboard.isDown("a") then
-    self.body:applyTorque(-self.turnMultiplier * inertia)
-  elseif love.keyboard.isDown("d") then
-    self.body:applyTorque(self.turnMultiplier * inertia)
-  end
 
   angle = self.body:getAngle()
   mass = self.body:getMass()
   if love.keyboard.isDown("w") then
+    if love.keyboard.isDown("a") then
+      self.body:applyTorque(-self.turnMultiplier * inertia)
+    elseif love.keyboard.isDown("d") then
+      self.body:applyTorque(self.turnMultiplier * inertia)
+    end
     fx = mass * -self.acceleration * math.cos(angle)
     fy = mass * -self.acceleration * math.sin(angle)
     self.body:applyForce(fx, fy)
   elseif love.keyboard.isDown("s") then
+    if love.keyboard.isDown("a") then
+      self.body:applyTorque(self.turnMultiplier * inertia)
+    elseif love.keyboard.isDown("d") then
+      self.body:applyTorque(-self.turnMultiplier * inertia)
+    end
     fx = mass * self.acceleration * math.cos(angle)
     fy = mass * self.acceleration * math.sin(angle)
     self.body:applyForce(fx, fy)
