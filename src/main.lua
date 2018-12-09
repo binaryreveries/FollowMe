@@ -6,6 +6,7 @@ world = nil
 local assets = nil
 local block1 = nil
 local border = nil
+local camera = nil
 local ground = nil
 local height = 650
 local player = nil
@@ -17,6 +18,10 @@ function love.load()
   assets = require "assets" -- load assets
   love.physics.setMeter(16) -- length of a meter in our world is 16px
   world = love.physics.newWorld(0, 0, true) -- create a world with no horizontal or vertical gravity
+
+  -- create camera
+  camera = require "entities/camera"
+  camera:load()
 
   -- create ground
   ground = require "entities/ground"
@@ -71,6 +76,8 @@ function love.update(dt)
     world:update(dt) -- put the world in motion!
   end
 
+  camera:move(player.dx, player.dy)
+
   player:update(ground, dt)
 
   -- detect if player is triggering new road creation and calculate location of new road
@@ -94,6 +101,8 @@ function love.update(dt)
 end
 
 function love.draw()
+  camera:set()
+
   ground:draw()
   love.graphics.setColor(0.28, 0.64, 0.05)
   love.graphics.polygon("fill",
@@ -107,6 +116,8 @@ function love.draw()
   road:draw()
 
   player:draw()
+
+  camera:unset()
 end
 
 function love.filedropped(file)
