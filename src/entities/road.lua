@@ -18,6 +18,7 @@ function road:load(x, y, width, length)
                                                   self.frontier.main.shape)
   self.frontier.main.fixture:setSensor(true)
   self.frontier.main.length = length
+  self.frontier.main.lastAngle = 0
   
   self.frontier.left = {}
   self.frontier.left.body = love.physics.newBody(world)
@@ -66,12 +67,22 @@ end
 
 function road:update(angle, roadShift)
   self:addsegment()
-  
-  deltaMainX = (self.roadjog) * math.cos(angle)
-  deltaMainY = (self.roadjog) * math.sin(angle)
+
   mainX = self.frontier.main.body:getX()
   mainY = self.frontier.main.body:getY()
-  self.frontier.main.body:setAngle(angle)
+  
+  
+  self.frontier.main.lastAngle = self.frontier.main.body:getAngle()
+  lastAngle = self.frontier.main.body:getAngle()
+  self.frontier.main.deltaAngle = lastAngle - angle
+  deltaAngle = lastAngle - angle
+  if math.abs(deltaAngle) > 0.00001 then
+    angle = angle + 0.00001
+  end
+  
+  self.frontier.main.body:setAngle(angle)  
+  deltaMainX = (self.roadjog) * math.cos(angle)
+  deltaMainY = (self.roadjog) * math.sin(angle)
   
   self.frontier.left.body:setAngle(angle)
   leftAngle = angle - (math.pi/2)

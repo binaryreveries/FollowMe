@@ -58,7 +58,7 @@ function love.load()
   
   -- create road
   road = require "entities/road"
-  road:load(player.body:getX()-50, player.body:getY(), 8, 128)
+  road:load(player.body:getX()-50, player.body:getY(), 2, 128)
   
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
   love.window.setMode(width, height)
@@ -105,12 +105,13 @@ function love.draw()
   road:draw()
 
   player:draw()
-  --love.graphics.setColor(255, 0, 0, 255)
-  --love.graphics.print(road.frontier.leftAngle, 20, 20)
-  --love.graphics.setColor(0, 255, 0, 255)
-  --love.graphics.print(road.frontier.rightAngle, 20, 40)
-  --love.graphics.setColor(255, 255, 255, 255)
-  --love.graphics.print(road.frontier.main.body:getAngle(), 20, 60)
+  love.graphics.setColor(255, 0, 0, 255)
+  love.graphics.print(road.frontier.main.lastAngle, 20, 20)
+  love.graphics.setColor(0, 255, 0, 255)
+  love.graphics.print(road.frontier.main.body:getAngle(), 20, 40)
+  foo = road.frontier.main.lastAngle - road.frontier.main.body:getAngle()
+  love.graphics.setColor(255, 255, 255, 255)
+  love.graphics.print(foo, 20, 60)
 
 end
 
