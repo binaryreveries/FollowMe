@@ -4,13 +4,13 @@
 world = nil
 
 local assets = nil
---local block1 = nil
+local block1 = nil
 local border = nil
 local ground = nil
-local height = 1050
+local height = 650
 local player = nil
 local road = nil
-local width = 1050
+local width = 650
 
 function love.load()
   assets = require "assets" -- load assets
@@ -26,12 +26,12 @@ function love.load()
   player:load(width, height)
 
   objects = {}
-  -- objects.block1 = {}
-  -- objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
-  -- objects.block1.mass = 10
-  -- objects.block1.body:setMass(objects.block1.mass)
-  -- objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
-  -- objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape)
+  objects.block1 = {}
+  objects.block1.body = love.physics.newBody(world, 200, 300, "dynamic")
+  objects.block1.mass = 10
+  objects.block1.body:setMass(objects.block1.mass)
+  objects.block1.shape = love.physics.newRectangleShape(0, 0, 50, 100)
+  objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape)
 
   border = assets.img.border
   border:setWrap("repeat")
@@ -58,7 +58,7 @@ function love.load()
   
   -- create road
   road = require "entities/road"
-  road:load(player.body:getX()-50, player.body:getY(), 2, 128)
+  road:load(player.body:getX()-50, player.body:getY(), 8, 128)
   
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
   love.window.setMode(width, height)
@@ -93,12 +93,13 @@ end
 
 function love.draw()
   ground:draw()
-  -- love.graphics.setColor(0.28, 0.64, 0.05)
-  -- love.graphics.polygon("fill",
-    -- objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
+  love.graphics.setColor(0.28, 0.64, 0.05)
+  love.graphics.polygon("fill",
+    objects.block1.body:getWorldPoints(objects.block1.shape:getPoints()))
 
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.draw(objects.borderTop.img, objects.borderTop.quad, 0, 0)
+  
   love.graphics.draw(objects.borderBottom.img, objects.borderBottom.quad, 0, objects.borderBottom.body:getY(), 0, 1, -1)
 
   road:draw()
