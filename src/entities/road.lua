@@ -3,45 +3,45 @@ local road = {}
 
 -- initialize road at (x, y) with each segment of given width and length
 function road:load(x, y, width, length)
-  self.roadjog = 1
+  self.roadPush = 1
+  self.roadSlide = self.roadPush/5
+  self.pivotLength = length * 0.6
+  sinLimit = (self.roadPush/2) / self.pivotLength
+  cosLimit = math.sqrt(self.pivotLength^2 - self.roadPush/2) / self.pivotLength
+  self.rotationLimit = math.pi - (math.abs(math.atan2(cosLimit, sinLimit)) * 2)
+  
   self.segments = {}
   self.skin = assets.img.road
   
   self.frontier = {}
-  
   self.frontier.main = {}
   self.frontier.main.body = love.physics.newBody(world)
   self.frontier.main.body:setX(x)
   self.frontier.main.body:setY(y)
+  self.frontier.main.body:setAngle(math.pi)
   self.frontier.main.shape = love.physics.newRectangleShape(width, length)
   self.frontier.main.fixture = love.physics.newFixture(self.frontier.main.body,
                                                   self.frontier.main.shape)
   self.frontier.main.fixture:setSensor(true)
   self.frontier.main.length = length
-  self.frontier.main.lastAngle = 0
   
   self.frontier.left = {}
   self.frontier.left.body = love.physics.newBody(world)
   self.frontier.left.body:setX(x)
-  self.frontier.left.body:setY(y+length/4)
-  self.frontier.left.shape = love.physics.newRectangleShape(width, length/2)
+  self.frontier.left.body:setY(y+length/3)
+  self.frontier.left.shape = love.physics.newRectangleShape(width, length/3)
   self.frontier.left.fixture = love.physics.newFixture(self.frontier.left.body,
                                                   self.frontier.left.shape)
   self.frontier.left.fixture:setSensor(true)
 
-  
   self.frontier.right = {}
   self.frontier.right.body = love.physics.newBody(world)
   self.frontier.right.body:setX(x)
-  self.frontier.right.body:setY(y-length/4)
-  self.frontier.right.shape = love.physics.newRectangleShape(width, length/2)
+  self.frontier.right.body:setY(y-length/3)
+  self.frontier.right.shape = love.physics.newRectangleShape(width, length/3)
   self.frontier.right.fixture = love.physics.newFixture(self.frontier.right.body,
                                                   self.frontier.right.shape)
   self.frontier.right.fixture:setSensor(true)
-  
-  leftAngle = 0
-  rightAngle = 0
-
 end
 
 function road:draw()
@@ -71,30 +71,41 @@ function road:update(angle, roadShift)
   mainX = self.frontier.main.body:getX()
   mainY = self.frontier.main.body:getY()
   
-  
-  self.frontier.main.lastAngle = self.frontier.main.body:getAngle()
   lastAngle = self.frontier.main.body:getAngle()
-  self.frontier.main.deltaAngle = lastAngle - angle
   deltaAngle = lastAngle - angle
-  if math.abs(deltaAngle) > 0.00001 then
-    angle = angle + 0.00001
+  if math.abs(deltaAngle) > math.pi then
+    if deltaAngle > 0 then
+      deltaAngle = deltaAngle - 2 * math.pi
+    else
+      deltaAngle = deltaAngle + 2 * math.pi
+    end
+  end
+  
+  if math.abs(deltaAngle) > math.pi/2 then
+    --car crashes? this should never happen unless people get off the track
+  end
+  
+  if math.abs(deltaAngle) > self.rotationLimit then
+    if deltaAngle > 0 then
+      angle = lastAngle - self.rotationLimit
+    else
+      angle = lastAngle + self.rotationLimit
+    end
   end
   
   self.frontier.main.body:setAngle(angle)  
-  deltaMainX = (self.roadjog) * math.cos(angle)
-  deltaMainY = (self.roadjog) * math.sin(angle)
-  
+  deltaMainX = (self.roadPush) * math.cos(angle)
+  deltaMainY = (self.roadPush) * math.sin(angle)
   self.frontier.left.body:setAngle(angle)
   leftAngle = angle - (math.pi/2)
   if leftAngle < -math.pi then leftAngle = leftAngle + 2 * math.pi end
-  deltaLeftX = self.frontier.main.length/4 * math.cos(leftAngle)
-  deltaLeftY = self.frontier.main.length/4 * math.sin(leftAngle)
-
+  deltaLeftX = self.frontier.main.length/3 * math.cos(leftAngle)
+  deltaLeftY = self.frontier.main.length/3 * math.sin(leftAngle)
   self.frontier.right.body:setAngle(angle)
   rightAngle = angle + (math.pi/2)
   if rightAngle > math.pi then rightAngle = rightAngle - 2 * math.pi end
-  deltaRightX = self.frontier.main.length/4 * math.cos(rightAngle)
-  deltaRightY = self.frontier.main.length/4 * math.sin(rightAngle)
+  deltaRightX = self.frontier.main.length/3 * math.cos(rightAngle)
+  deltaRightY = self.frontier.main.length/3 * math.sin(rightAngle)
   
   if roadShift == "center" then
     deltaSlideX = 0
@@ -106,16 +117,14 @@ function road:update(angle, roadShift)
     elseif roadShift == "right" then
       slideAngle = rightAngle
     end
-    deltaSlideX = self.roadjog/10 * math.cos(slideAngle)
-    deltaSlideY = self.roadjog/10 * math.sin(slideAngle)
+    deltaSlideX = self.roadSlide * math.cos(slideAngle)
+    deltaSlideY = self.roadSlide * math.sin(slideAngle)
   end
   
   self.frontier.main.body:setX(mainX + deltaMainX + deltaSlideX)
   self.frontier.main.body:setY(mainY + deltaMainY + deltaSlideY)
-  
   self.frontier.left.body:setX(mainX + deltaMainX + deltaLeftX + deltaSlideX)
   self.frontier.left.body:setY(mainY + deltaMainY + deltaLeftY + deltaSlideY)
-  
   self.frontier.right.body:setX(mainX + deltaMainX + deltaRightX + deltaSlideX)
   self.frontier.right.body:setY(mainY + deltaMainY + deltaRightY + deltaSlideY)
 end
