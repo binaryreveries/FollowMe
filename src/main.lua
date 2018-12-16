@@ -80,7 +80,7 @@ function love.update(dt)
     rightDistance = love.physics.getDistance(player.fixture, road.frontier.right.fixture)
     if leftDistance < paveThreshold then
       roadShift = "left"
-    elseif rightDistance < 0.1 then
+    elseif rightDistance < paveThreshold then
       roadShift = "right"
     else
       roadShift = "center"
