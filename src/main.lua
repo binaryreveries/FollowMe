@@ -12,6 +12,7 @@ local player = nil
 local road = nil
 local width = 650
 
+
 function love.load()
   assets = require "assets" -- load assets
   love.physics.setMeter(16) -- length of a meter in our world is 16px
@@ -59,6 +60,7 @@ function love.load()
   -- create road
   road = require "entities/road"
   road:load(player.body:getX()-50, player.body:getY(), 8, 128)
+  paveThreshold = road:getPaveThreshold()
   
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
   love.window.setMode(width, height)
@@ -74,13 +76,13 @@ function love.update(dt)
   -- detect if player is triggering new road creation and calculate location of new road
   distance = love.physics.getDistance(player.fixture, road.frontier.main.fixture)
   -- collided with frontier
-  while distance < 0.1 do
+  while distance < paveThreshold do
     -- paving new road
     leftDistance = love.physics.getDistance(player.fixture, road.frontier.left.fixture)
     rightDistance = love.physics.getDistance(player.fixture, road.frontier.right.fixture)
-    if leftDistance < 0.1 then
+    if leftDistance < paveThreshold then
       roadShift = "left"
-    elseif rightDistance < 0.1 then
+    elseif rightDistance < paveThreshold then
       roadShift = "right"
     else
       roadShift = "center"
