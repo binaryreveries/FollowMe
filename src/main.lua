@@ -78,7 +78,7 @@ function love.update(dt)
     -- paving new road
     leftDistance = love.physics.getDistance(player.fixture, road.frontier.left.fixture)
     rightDistance = love.physics.getDistance(player.fixture, road.frontier.right.fixture)
-    if leftDistance < 0.1 then
+    if leftDistance < paveThreshold then
       roadShift = "left"
     elseif rightDistance < 0.1 then
       roadShift = "right"
