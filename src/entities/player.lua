@@ -36,7 +36,7 @@ function player:draw()
   love.graphics.draw(self.img,
                      self.body:getX(),
                      self.body:getY(),
-                     self.body:getAngle() - math.pi/2,
+                     self.body:getAngle(),
                      1,
                      1,
                      self.width/2,
@@ -53,6 +53,9 @@ function player:update(ground, dt)
   -- setup keyboard event handling
   inertia = self.body:getInertia()
 
+  fx = mass * self.acceleration * math.cos(angle)
+  fy = mass * self.acceleration * math.sin(angle)
+
   angle = self.body:getAngle()
   mass = self.body:getMass()
   if love.keyboard.isDown("w") then
@@ -61,8 +64,6 @@ function player:update(ground, dt)
     elseif love.keyboard.isDown("d") then
       self.body:applyTorque(self.turnMultiplier * inertia)
     end
-    fx = mass * -self.acceleration * math.cos(angle)
-    fy = mass * -self.acceleration * math.sin(angle)
     self.body:applyForce(fx, fy)
   elseif love.keyboard.isDown("s") then
     if love.keyboard.isDown("a") then
@@ -70,9 +71,7 @@ function player:update(ground, dt)
     elseif love.keyboard.isDown("d") then
       self.body:applyTorque(-self.turnMultiplier * inertia)
     end
-    fx = mass * self.acceleration * math.cos(angle)
-    fy = mass * self.acceleration * math.sin(angle)
-    self.body:applyForce(fx, fy)
+    self.body:applyForce(-fx, -fy)
   end
 
   x, y = self.body:getWorldCenter()
@@ -87,9 +86,6 @@ function player:update(ground, dt)
   table.insert(self.joints, createJoint(ground.body, self.body, x + x2, y + y2, self.wheelForceFriction, self.wheelTorqueFriction))
   table.insert(self.joints, createJoint(ground.body, self.body, x + x3, y + y3, self.wheelForceFriction, self.wheelTorqueFriction))
   table.insert(self.joints, createJoint(ground.body, self.body, x + x4, y + y4, self.wheelForceFriction, self.wheelTorqueFriction))
-
-  vx, vy = self.body:getLinearVelocity()
-  self.speed = math.sqrt((vx * vx) + (vy * vy))
 
   -- get self trajectory for new road object angle
   self.dx = self.body:getX() - self.lastX
