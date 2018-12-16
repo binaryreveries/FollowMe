@@ -29,10 +29,15 @@ function player:load(width, height)
   self.lastY = self.body:getY()
   self.dx = self.body:getX() - self.lastX
   self.dy = self.body:getY() - self.lastY
-  self.trajectory = math.atan2(self.dx, self.dy)
 end
 
 function player:draw()
+  angle = self.body:getAngle() % (2*math.pi)
+  trajectory = self:getTrajectory()
+  directionalDelta = trajectory - angle
+  love.graphics.print("trajectory: "..trajectory.."", 20, 20)
+  love.graphics.print("angle: "..angle.."", 20, 40)
+  love.graphics.print("delta: "..directionalDelta.."", 20, 60)
   love.graphics.draw(self.img,
                      self.body:getX(),
                      self.body:getY(),
@@ -50,27 +55,32 @@ function player:update(ground, dt)
 
   self.joints = {}
 
-  -- setup keyboard event handling
+  mass = self.body:getMass()
   inertia = self.body:getInertia()
+  angle = self.body:getAngle() % (2*math.pi)
+  trajectory = self:getTrajectory()
+
+  directionalDelta = trajectory - angle
+
+  if directionalDelta < (-math.pi/2) and directionalDelta > (-3*math.pi/2)then
+    direction = -1
+  else
+    direction = 1
+  end
+
+  -- setup keyboard event handling
+  if love.keyboard.isDown("a") then
+    self.body:applyTorque(direction * -self.turnMultiplier * inertia)
+  elseif love.keyboard.isDown("d") then
+    self.body:applyTorque(direction * self.turnMultiplier * inertia)
+  end
 
   fx = mass * self.acceleration * math.cos(angle)
   fy = mass * self.acceleration * math.sin(angle)
 
-  angle = self.body:getAngle()
-  mass = self.body:getMass()
   if love.keyboard.isDown("w") then
-    if love.keyboard.isDown("a") then
-      self.body:applyTorque(-self.turnMultiplier * inertia)
-    elseif love.keyboard.isDown("d") then
-      self.body:applyTorque(self.turnMultiplier * inertia)
-    end
     self.body:applyForce(fx, fy)
   elseif love.keyboard.isDown("s") then
-    if love.keyboard.isDown("a") then
-      self.body:applyTorque(self.turnMultiplier * inertia)
-    elseif love.keyboard.isDown("d") then
-      self.body:applyTorque(-self.turnMultiplier * inertia)
-    end
     self.body:applyForce(-fx, -fy)
   end
 
