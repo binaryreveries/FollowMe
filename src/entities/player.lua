@@ -32,8 +32,8 @@ function player:load(width, height)
 end
 
 function player:draw()
-  angle = self.body:getAngle() % (2*math.pi)
-  trajectory = self:getTrajectory()
+  angle = math.deg(self:getAngle())
+  trajectory = math.deg(self:getTrajectory())
   directionalDelta = trajectory - angle
   love.graphics.print("trajectory: "..trajectory.."", 20, 20)
   love.graphics.print("angle: "..angle.."", 20, 40)
