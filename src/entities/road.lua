@@ -10,10 +10,12 @@ function road:load(x, y, width, length)
   -- triangle represents the start and end points of the travel of the center of
   -- the frontier. The legs represent half of frontier object. In this way we 
   -- ensure that the turn of the frontier is never so accute that it crosses the
-  -- previous position. We define pivot length, represented by the legs of the 
-  -- triangle to be 0.6 the length of the frontier.  We define the base of the 
-  -- triangle as roadPush/2. We define our rotation limit as atan2 of the sin 
-  -- and cos of the angle, which we find using triginometic functions.
+  -- previous position. We define pivot length, which represents the legs of the 
+  -- triangle, to be 0.6 the length of the frontier. This is a little longer
+  -- than half the length of the frontier, which creates smoother curves. 
+  -- We define the base of the triangle as roadPush/2. We define our rotation 
+  -- limit as atan2 of the sin and cos of the angle, which we find using 
+  -- triginometic functions.
   self.paveThreshold = 0.1
   self.roadPush = 1
   self.roadSlide = self.roadPush/5
