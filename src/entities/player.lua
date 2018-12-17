@@ -57,7 +57,7 @@ function player:update(ground, dt)
 
   mass = self.body:getMass()
   inertia = self.body:getInertia()
-  angle = self.body:getAngle() % (2*math.pi)
+  angle = self:getAngle()
   trajectory = self:getTrajectory()
 
   directionalDelta = trajectory - angle
@@ -102,6 +102,20 @@ function player:update(ground, dt)
   self.dy = self.body:getY() - self.lastY
   self.lastX = self.body:getX()
   self.lastY = self.body:getY()
+end
+
+function player:getAngle()
+  -- angle = self.body:getAngle()
+  -- if angle < -math.pi then
+  --   angle = angle % -math.pi
+  -- end
+
+  -- if angle > math.pi then
+  --   angle = angle % math.pi
+  -- end
+
+  -- return angle
+  return self.body:getAngle() % (2*math.pi)
 end
 
 function player:getTrajectory()
