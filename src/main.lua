@@ -4,9 +4,11 @@
 local assets = require("assets")
 local camera = require("entities/camera")
 local ground = require("entities/ground")
+local logger = require("logger/logger")
 local player = require("entities/player")
 local road = require("entities/road")
 
+debug_enabled = false
 world = nil
 local block1 = nil
 local border = nil
