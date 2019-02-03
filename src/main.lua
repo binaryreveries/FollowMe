@@ -56,12 +56,12 @@ function love.load()
   objects.borderBottom.shape = love.physics.newRectangleShape(objects.borderBottom.width, objects.borderBottom.height)
   objects.borderBottom.fixture = love.physics.newFixture(objects.borderBottom.body, objects.borderBottom.shape)
 
-  
+
   -- create road
   road = require "entities/road"
   road:load(player.body:getX()-50, player.body:getY(), 8, 128)
   paveThreshold = road:getPaveThreshold()
-  
+
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
   love.window.setMode(width, height)
 end
@@ -101,7 +101,7 @@ function love.draw()
 
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.draw(objects.borderTop.img, objects.borderTop.quad, 0, 0)
-  
+
   love.graphics.draw(objects.borderBottom.img, objects.borderBottom.quad, 0, objects.borderBottom.body:getY(), 0, 1, -1)
 
   road:draw()
