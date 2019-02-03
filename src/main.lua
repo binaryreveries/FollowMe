@@ -1,6 +1,7 @@
 -- FollowMe
 -- Move car around using the arrow keys.
 -- Compatible with löve 0.10.0 and up
+local argparse = require("argparse/argparse")
 local assets = require("assets")
 local camera = require("entities/camera")
 local ground = require("entities/ground")
@@ -15,7 +16,14 @@ local border = nil
 local height = 650
 local width = 650
 
-function love.load()
+function love.load(args)
+  args = argparse:parse(args)
+  debug_enabled = args['debug']
+  logger:log_debug("debug mode enabled")
+  for k, v in pairs(args) do
+    logger:log_debug("\t%s -> %s", k, v)
+  end
+
   love.physics.setMeter(16) -- length of a meter in our world is 16px
   world = love.physics.newWorld(0, 0, true) -- create a world with no horizontal or vertical gravity
 
