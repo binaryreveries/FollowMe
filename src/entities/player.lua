@@ -1,5 +1,5 @@
-local assets = require "assets"
-local player = { }
+local assets = require("assets")
+local player = {}
 
 -- create car
 function player:load(width, height)

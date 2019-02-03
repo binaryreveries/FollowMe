@@ -1,34 +1,25 @@
 -- FollowMe
 -- Move car around using the arrow keys.
 -- Compatible with löve 0.10.0 and up
-world = nil
+local assets = require("assets")
+local camera = require("entities/camera")
+local ground = require("entities/ground")
+local player = require("entities/player")
+local road = require("entities/road")
 
-local assets = nil
+world = nil
 local block1 = nil
 local border = nil
-local camera = nil
-local ground = nil
 local height = 650
-local player = nil
-local road = nil
 local width = 650
 
-
 function love.load()
-  assets = require "assets" -- load assets
   love.physics.setMeter(16) -- length of a meter in our world is 16px
   world = love.physics.newWorld(0, 0, true) -- create a world with no horizontal or vertical gravity
 
-  -- create camera
-  camera = require "entities/camera"
+  assets:load()
   camera:load()
-
-  -- create ground
-  ground = require "entities/ground"
   ground:load(width, height)
-
-  -- create car
-  player = require "entities/player"
   player:load(width, height)
 
   objects = {}
@@ -61,9 +52,7 @@ function love.load()
   objects.borderBottom.shape = love.physics.newRectangleShape(objects.borderBottom.width, objects.borderBottom.height)
   objects.borderBottom.fixture = love.physics.newFixture(objects.borderBottom.body, objects.borderBottom.shape)
 
-
   -- create road
-  road = require "entities/road"
   road:load(player.body:getX()-50, player.body:getY(), 8, 128)
   paveThreshold = road:getPaveThreshold()
 
