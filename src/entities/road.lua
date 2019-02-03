@@ -1,4 +1,4 @@
-local assets = require "assets"
+local assets = require("assets")
 local road = {}
 
 -- initialize road at (x, y) with each segment of given width and length
