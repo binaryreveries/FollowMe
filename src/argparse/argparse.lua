@@ -18,7 +18,7 @@ function argparse:parse(raw)
     for i=1,#raw do
       if raw[i] == '--' .. option then
         if i + 1 > #raw then
-          logger:log_fatal("argument '%s' is missing value", raw[i])
+          logger:fatal("argument '%s' is missing value", raw[i])
         end
         args[option] = raw[i + 1]
         return

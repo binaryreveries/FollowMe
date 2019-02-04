@@ -1,17 +1,17 @@
 local logger = {}
 
-function logger:log(msg, ...)
+function logger:info(msg, ...)
   print(string.format(msg, ...))
 end
 
-function logger:log_debug(msg, ...)
+function logger:debug(msg, ...)
   if not debug_enabled then
     return
   end
   print(string.format(msg, ...))
 end
 
-function logger:log_fatal(msg, ...)
+function logger:fatal(msg, ...)
   error(string.format(msg, ...))
 end
 
