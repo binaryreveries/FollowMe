@@ -19,9 +19,9 @@ local width = 650
 function love.load(args)
   args = argparse:parse(args)
   debug_enabled = args['debug']
-  logger:log_debug("debug mode enabled")
+  logger:debug("debug mode enabled")
   for k, v in pairs(args) do
-    logger:log_debug("\t%s -> %s", k, v)
+    logger:debug("\t%s -> %s", k, v)
   end
 
   love.physics.setMeter(16) -- length of a meter in our world is 16px
