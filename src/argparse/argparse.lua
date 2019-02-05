@@ -1,26 +1,25 @@
+local ctx = require("gamectx/global")
 local logger = require("logger/logger")
 
 local argparse = {}
 
-function argparse:parse(raw)
-  local args = {}
-
-  function parse_flag(flag)
-    for i=1,#raw do
-      if raw[i] == '--' .. flag then
-        args[flag] = true
+function argparse:parse(args)
+  local function parse_flag(flag)
+    for i=1,#args do
+      if args[i] == '--' .. flag then
+        ctx:set_arg(flag, true)
         return
       end
     end
   end
 
-  function parse_value(option)
-    for i=1,#raw do
-      if raw[i] == '--' .. option then
-        if i + 1 > #raw then
-          logger:fatal("argument '%s' is missing value", raw[i])
+  local function parse_value(option)
+    for i=1,#args do
+      if args[i] == '--' .. option then
+        if i + 1 > #args then
+          logger:fatal("argument '%s' is missing value", args[i])
         end
-        args[option] = raw[i + 1]
+        ctx:set_arg(option, args[i + 1])
         return
       end
     end
@@ -28,8 +27,6 @@ function argparse:parse(raw)
 
   parse_flag('debug')
   parse_value('connect')
-
-  return args
 end
 
 return argparse

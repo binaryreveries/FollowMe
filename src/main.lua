@@ -1,15 +1,14 @@
 -- FollowMe
 -- Move car around using the arrow keys.
--- Compatible with löve 0.10.0 and up
 local argparse = require("argparse/argparse")
 local assets = require("assets")
 local camera = require("entities/camera")
+local ctx = require('gamectx/global')
 local ground = require("entities/ground")
 local logger = require("logger/logger")
 local player = require("entities/player")
 local road = require("entities/road")
 
-debug_enabled = false
 world = nil
 local block1 = nil
 local border = nil
@@ -17,10 +16,10 @@ local height = 650
 local width = 650
 
 function love.load(args)
-  args = argparse:parse(args)
-  debug_enabled = args['debug']
+  ctx:load()
+  argparse:parse(args)
   logger:debug("debug mode enabled")
-  for k, v in pairs(args) do
+  for k, v in pairs(ctx:get_args()) do
     logger:debug("\t%s -> %s", k, v)
   end
 
