@@ -1,3 +1,5 @@
+local ctx = require("gamectx/global")
+
 local logger = {}
 
 function logger:info(msg, ...)
@@ -5,7 +7,7 @@ function logger:info(msg, ...)
 end
 
 function logger:debug(msg, ...)
-  if not debug_enabled then
+  if not ctx:get('debug_enabled') then
     return
   end
   print(string.format(msg, ...))
