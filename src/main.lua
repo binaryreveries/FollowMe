@@ -19,7 +19,7 @@ function love.load(args)
   ctx:load()
   argparse:parse(args)
   logger:debug("debug mode enabled")
-  for k, v in pairs(ctx:get_args()) do
+  for k, v in pairs(ctx:getArgs()) do
     logger:debug("\t%s -> %s", k, v)
   end
 

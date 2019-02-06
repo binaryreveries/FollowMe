@@ -1,6 +1,6 @@
 local ctx = require("gamectx/global")
 local logger = require("logger/logger")
-local req_chan = ...
+local reqChan = ...
 
 local args = { -- populated by argparse
   debug=nil,
@@ -8,28 +8,28 @@ local args = { -- populated by argparse
 }
 
 local opts = {
-  debug_enabled=false,
+  debugEnabled=false,
 }
 
-local function arg_to_opt(key, val)
-  if key == 'debug' then
-    opts.debug_enabled = true
+local function argToOpt(arg)
+  if arg == 'debug' then
+    opts.debugEnabled = args[arg]
   end
 end
 
 while true do
-  local data = req_chan:demand()
+  local data = reqChan:demand()
   if data.action == 'set' then
     opts[data.key] = data.val
   elseif data.action == 'get' then
-    data.resp_chan:push(opts[data.key])
-  elseif data.action == 'set_arg' then
+    data.respChan:push(opts[data.key])
+  elseif data.action == 'setArg' then
     args[data.key] = data.val
-    arg_to_opt(data.key, data.val)
-  elseif data.action == 'get_arg' then
-    data.resp_chan:push(args[data.key])
-  elseif data.action == 'get_args' then
-    data.resp_chan:push(args)
+    argToOpt(data.key)
+  elseif data.action == 'getArg' then
+    data.respChan:push(args[data.key])
+  elseif data.action == 'getArgs' then
+    data.respChan:push(args)
   else
     logger:fatal("unrecognized action: %s", data.action)
   end

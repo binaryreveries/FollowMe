@@ -7,7 +7,7 @@ function logger:info(msg, ...)
 end
 
 function logger:debug(msg, ...)
-  if not ctx:get('debug_enabled') then
+  if not ctx:get('debugEnabled') then
     return
   end
   print(string.format(msg, ...))
