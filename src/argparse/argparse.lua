@@ -4,29 +4,29 @@ local logger = require("logger/logger")
 local argparse = {}
 
 function argparse:parse(args)
-  local function parse_flag(flag)
+  local function parseFlag(flag)
     for i=1,#args do
       if args[i] == '--' .. flag then
-        ctx:set_arg(flag, true)
+        ctx:setArg(flag, true)
         return
       end
     end
   end
 
-  local function parse_value(option)
+  local function parseValue(option)
     for i=1,#args do
       if args[i] == '--' .. option then
         if i + 1 > #args then
           logger:fatal("argument '%s' is missing value", args[i])
         end
-        ctx:set_arg(option, args[i + 1])
+        ctx:setArg(option, args[i + 1])
         return
       end
     end
   end
 
-  parse_flag('debug')
-  parse_value('connect')
+  parseFlag('debug')
+  parseValue('connect')
 end
 
 return argparse
