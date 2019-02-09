@@ -1,13 +1,13 @@
 -- FollowMe
 -- Move car around using the arrow keys.
-local argparse = require("argparse/argparse")
+local argparse = require("argparse.argparse")
 local assets = require("assets")
-local camera = require("entities/camera")
-local ctx = require('gamectx/global')
-local ground = require("entities/ground")
-local logger = require("logger/logger")
-local player = require("entities/player")
-local road = require("entities/road")
+local camera = require("entities.camera")
+local ctx = require('gamectx.global')
+local ground = require("entities.ground")
+local logger = require("logger.logger")
+local player = require("entities.player")
+local road = require("entities.road")
 
 world = nil
 local block1 = nil
