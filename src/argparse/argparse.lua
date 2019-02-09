@@ -1,5 +1,5 @@
-local ctx = require("gamectx/global")
-local logger = require("logger/logger")
+local ctx = require("gamectx.global")
+local logger = require("logger.logger")
 
 local argparse = {}
 

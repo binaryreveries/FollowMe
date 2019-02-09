@@ -1,4 +1,4 @@
-local ctx = require("gamectx/global")
+local ctx = require("gamectx.global")
 
 local logger = {}
 
