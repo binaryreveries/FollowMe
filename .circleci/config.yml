@@ -1,0 +1,93 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/buildpack-deps
+    steps:
+      - checkout
+      - run:
+          name: "Install Prerequisite OS Packages"
+          command: |
+            sudo apt-get install lua5.1 luarocks
+      - run:
+          name: "Setup LuaRocks"
+          command: |
+            luarocks path
+      - run:
+          name: "Install LPeg"
+          command: |
+            luarocks install --local lpeg
+      - run: 
+          name: "Compile Lua Files"
+          command: |
+            find src -iname "*.lua" | xargs luac -p
+
+  package:
+    docker:
+      - image: circleci/buildpack-deps
+    steps:
+      - checkout
+      - run:
+          name: "Create LÖVE package"
+          command: |
+            ./package.sh src love
+      - run:
+          name: "Create Linux release"
+          command: |
+            ./package.sh src linux
+      - run:
+          name: "Create macOS release"
+          command: |
+            ./package.sh src macos
+      - run:
+          name: "Create Windows release"
+          command: |
+            ./package.sh src windows
+      - persist_to_workspace:
+          root: .
+          paths:
+            - pkg
+
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            VERSION=$(git describe)
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./pkg/
+
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build
+
+  release:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
+      - package:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
+      - publish-github-release:
+          requires:
+            - package
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/

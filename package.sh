@@ -18,8 +18,8 @@ set -o nounset
 set -o errexit
 
 PKG="./pkg"
-LOVE_MACOS_URL="https://bitbucket.org/rude/love/downloads/love-11.1-macos.zip"
-LOVE_WIN_URL="https://bitbucket.org/rude/love/downloads/love-11.1-win32.zip"
+LOVE_MACOS_URL="https://bitbucket.org/rude/love/downloads/love-11.2-macos.zip"
+LOVE_WIN_URL="https://bitbucket.org/rude/love/downloads/love-11.2-win32.zip"
 USAGE="Usage: deploy.sh SRC TARGET\n"
 
 if [ "$#" -lt 1 -o "$#" -gt 2 ]
