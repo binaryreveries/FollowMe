@@ -1,0 +1,22 @@
+version: 2
+jobs:
+  build:
+    steps:
+      - checkout
+      - run: sudo apt-get install lua5.1 luarocks
+      - run: luarocks install --local lpeg
+      - run:
+          name: System info
+          command: |
+            echo "Lua $(lua -v)"
+            echo "LuaRocks Path $(luarocks path)"
+      - run: 
+          name: Lua compile
+          command: |
+            find src -iname "*.lua" | xargs luac -p
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
