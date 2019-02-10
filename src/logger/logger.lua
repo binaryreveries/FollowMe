@@ -1,4 +1,5 @@
 local ctx = require("gamectx.global")
+local serpent = require("serpent.serpent")
 
 local logger = {}
 
@@ -24,12 +25,22 @@ local function prefix(level)
   return ""
 end
 
+local function prettyPrintArgs(...)
+  local args = {...}
+  for i, arg in pairs(args) do
+    if type(arg) == 'table' then
+      args[i] = serpent.line(arg, {comment=false})
+    end
+  end
+  return unpack(args)
+end
+
 local function logAt(level, fmt, ...)
   if level >= DEBUG and not ctx:get('debugEnabled') then
     return
   end
   local func = level == FATAL and error or print
-  local msg = prefix(level) .. string.format(fmt, ...)
+  local msg = prefix(level) .. string.format(fmt, prettyPrintArgs(...))
   func(msg)
 end
 
