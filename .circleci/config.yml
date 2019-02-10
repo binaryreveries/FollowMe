@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      image: circleci/buildpack-deps
+      - image: circleci/buildpack-deps
     steps:
       - checkout
       - run: sudo apt-get install lua5.1 luarocks
