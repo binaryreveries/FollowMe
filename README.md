@@ -1,7 +1,7 @@
 # FollowMe
 
 
-[![Build Status](https://travis-ci.org/binaryreveries/FollowMe.svg?branch=master)](https://travis-ci.org/binaryreveries/FollowMe)
+[![Build Status](https://circleci.com/gh/binaryreveries/FollowMe.svg?style=svg)](https://circleci.com/gh/binaryreveries/FollowMe)
 
 ## Requirements
 
