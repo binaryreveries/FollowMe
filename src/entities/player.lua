@@ -34,6 +34,7 @@ function player:load(width, height)
   self.lastY = self.body:getY()
   self.dx = self.body:getX() - self.lastX
   self.dy = self.body:getY() - self.lastY
+  self.vx, self.vy = self.body:getLinearVelocity()
   self.trajectory = math.atan2(self.dx, self.dy)
 end
 
@@ -56,13 +57,16 @@ function player:update(ground, dt)
   self.joints = {}
 
   inertia = self.body:getInertia()
-
-  angle = self.body:getAngle()
   mass = self.body:getMass()
+
+  vx, vy = self.body:getLinearVelocity()
+  ax = (vx - self.vx) / dt
+  ay = (vy - self.vy) / dt
+  self.vx, self.vy = vx, vy
+
   if self.isaccelerating then
-    fx = mass * -self.acceleration * math.cos(angle)
-    fy = mass * -self.acceleration * math.sin(angle)
-    self.body:applyForce(fx, fy)
+    ax = -self.acceleration
+    ay = -self.acceleration
   end
 
   if self.isbraking then
@@ -85,10 +89,14 @@ function player:update(ground, dt)
   end
 
   if self.isreversing then
-    fx = mass * self.acceleration * math.cos(angle)
-    fy = mass * self.acceleration * math.sin(angle)
-    self.body:applyForce(fx, fy)
+    ax = self.acceleration
+    ay = self.acceleration
   end
+
+  angle = self.body:getAngle()
+  fx = mass * ax * math.cos(angle)
+  fy = mass * ay * math.sin(angle)
+  self.body:applyForce(fx, fy)
 
   x, y = self.body:getWorldCenter()
 
@@ -102,9 +110,6 @@ function player:update(ground, dt)
   table.insert(self.joints, createJoint(ground.body, self.body, x + x2, y + y2, self.wheelForceFriction, self.wheelTorqueFriction))
   table.insert(self.joints, createJoint(ground.body, self.body, x + x3, y + y3, self.wheelForceFriction, self.wheelTorqueFriction))
   table.insert(self.joints, createJoint(ground.body, self.body, x + x4, y + y4, self.wheelForceFriction, self.wheelTorqueFriction))
-
-  vx, vy = self.body:getLinearVelocity()
-  self.speed = math.sqrt((vx * vx) + (vy * vy))
 
   -- get self trajectory for new road object angle
   self.dx = self.body:getX() - self.lastX
