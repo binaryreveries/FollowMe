@@ -166,3 +166,31 @@ end
 function love.filedropped(file)
   player.img = love.graphics.newImage(file)
 end
+
+function love.keypressed(key, scancode, isrepeat)
+  if key == "w" then
+    player:beginAccelerate()
+  elseif key == "s" then
+    player:beginReversing()
+  elseif key == "a" then
+    player:beginTurningLeft()
+  elseif key == "d" then
+    player:beginTurningRight()
+  elseif key == " " then
+    player:beginBraking()
+  end
+end
+
+function love.keyreleased(key, scancode)
+  if key == "w" then
+    player:endAccelerate()
+  elseif key == "s" then
+    player:endReversing()
+  elseif key == "a" then
+    player:endTurningLeft()
+  elseif key == "d" then
+    player:endTurningRight()
+  elseif key == " " then
+    player:endBraking()
+  end
+end
