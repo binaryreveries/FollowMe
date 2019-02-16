@@ -1,6 +1,7 @@
 local assets = require("assets")
 local base = require('entities.base')
 
+local debug = true
 local player = {}
 setmetatable(player, {__index=base})
 
@@ -50,6 +51,22 @@ function player:draw()
                      1,
                      self.width/2,
                      self.height/2)
+  if debug then
+    status = string.format("Mass: %.0f, Vx: %.2f, Vy: %.2f",
+      self.body:getMass(), self.vx, self.vy)
+    love.graphics.print(status,
+                       self.body:getX(),
+                       self.body:getY()-50)
+
+    for index, joint in pairs(self.joints) do
+      sx, sy, px, py = joint:getAnchors()
+      love.graphics.setPointSize(3)
+      love.graphics.setColor(1, 0, 0)
+      love.graphics.points(sx, sy)
+      love.graphics.setColor(0, 0, 1)
+      love.graphics.points(px, py)
+    end
+  end
 end
 
 function player:update(ground, dt)
