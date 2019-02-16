@@ -8,7 +8,8 @@ setmetatable(player, {__index=base})
 function player:load(width, height)
   -- TODO JCD make a constructor
   self:genId()
-  self.acceleration = 300
+  -- acceleration in m/s^2
+  self.acceleration = 6.5
 
   -- set sprite
   self.img = assets.img.car
@@ -19,10 +20,10 @@ function player:load(width, height)
 
   self.joints = {}
 
-  self.turnMultiplier = 8
+  self.turnMultiplier = 0.5
 
-  self.wheelForceFriction = 50
-  self.wheelTorqueFriction = 1
+  self.wheelForceFriction = 0.015
+  self.wheelTorqueFriction = 0.015
 
   -- place car in center of world and make it dynamic so it can move
   self.body = love.physics.newBody(world, width/2, height/2, "dynamic")
@@ -30,6 +31,8 @@ function player:load(width, height)
 
   -- attach fixture to body and set density to 1 (density increases mass)
   self.fixture = love.physics.newFixture(self.body, self.shape, 1)
+  -- set mass to 1350 kg, avg mass of compact
+  self.body:setMass(1350)
   self.lastX = self.body:getX()
   self.lastY = self.body:getY()
   self.dx = self.body:getX() - self.lastX
