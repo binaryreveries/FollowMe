@@ -55,7 +55,6 @@ function player:update(ground, dt)
 
   self.joints = {}
 
-  -- setup keyboard event handling
   inertia = self.body:getInertia()
 
   angle = self.body:getAngle()
