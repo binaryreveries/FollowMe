@@ -138,7 +138,6 @@ end
 
 function player:beginAccelerate()
   self.isaccelerating = true
-  self.isreversing = false
 end
 
 function player:beginBrake()
@@ -146,17 +145,14 @@ function player:beginBrake()
 end
 
 function player:beginReversing()
-  self.isaccelerating = false
   self.isreversing = true
 end
 
 function player:beginTurningLeft()
   self.isturningleft = true
-  self.isturningright = false
 end
 
 function player:beginTurningRight()
-  self.isturningleft = false
   self.isturningright = true
 end
 
