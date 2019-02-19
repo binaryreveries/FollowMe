@@ -3,6 +3,8 @@ local ground = {}
 
 -- create ground
 function ground:load(width, height)
+  self.friction = {}
+  self.friction.coefficient = 0.015
   self.body = love.physics.newBody(world, width/2, height/2)
   self.shape = love.physics.newRectangleShape(width, height)
 end

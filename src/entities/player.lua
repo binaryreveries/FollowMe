@@ -1,9 +1,10 @@
 local assets = require("assets")
 local base = require('entities.base')
+local logger = require("logger.logger")
 
-local debug = true
 local player = {}
 setmetatable(player, {__index=base})
+local debug = true
 
 -- create car
 function player:load(width, height)
@@ -18,13 +19,7 @@ function player:load(width, height)
   -- set dimensions based on sprite
   self.width = self.img:getWidth()
   self.height = self.img:getHeight()
-
-  self.joints = {}
-
-  self.turnMultiplier = 0.5
-
-  self.wheelForceFriction = 0.015
-  self.wheelTorqueFriction = 0.015
+  self.wheelbase = self.height / love.physics.getMeter()
 
   -- place car in center of world and make it dynamic so it can move
   self.body = love.physics.newBody(world, width/2, height/2, "dynamic")
@@ -39,6 +34,7 @@ function player:load(width, height)
   self.dx = self.body:getX() - self.lastX
   self.dy = self.body:getY() - self.lastY
   self.vx, self.vy = self.body:getLinearVelocity()
+  self.speed = math.sqrt(self.vx^2 + self.vy^2)
   self.trajectory = math.atan2(self.dx, self.dy)
 end
 
@@ -51,113 +47,96 @@ function player:draw()
                      1,
                      self.width/2,
                      self.height/2)
-  if debug then
-    status = string.format("Mass: %.0f, Vx: %.2f, Vy: %.2f",
-      self.body:getMass(), self.vx, self.vy)
-    love.graphics.print(status,
-                       self.body:getX(),
-                       self.body:getY()-50)
-
-    for index, joint in pairs(self.joints) do
-      sx, sy, px, py = joint:getAnchors()
-      love.graphics.setPointSize(3)
-      love.graphics.setColor(1, 0, 0)
-      love.graphics.points(sx, sy)
-      love.graphics.setColor(0, 0, 1)
-      love.graphics.points(px, py)
-    end
-  end
 end
 
 function player:update(ground, dt)
-  for index, joint in pairs(self.joints) do
-    joint:destroy()
-  end
-
-  self.joints = {}
-
-  inertia = self.body:getInertia()
-  mass = self.body:getMass()
-
-  vx, vy = self.body:getLinearVelocity()
-  ax = (vx - self.vx) / dt
-  ay = (vy - self.vy) / dt
-  self.vx, self.vy = vx, vy
-
-  if self.isaccelerating then
-    ax = -self.acceleration
-    ay = -self.acceleration
-  end
-
-  if self.isbraking then
-  end
-
-  if self.isturningleft then
-    if self.isreversing then
-      self.body:applyTorque(self.turnMultiplier * inertia)
-    else
-      self.body:applyTorque(-self.turnMultiplier * inertia)
-    end
-  end
-
-  if self.isturningright then
-    if self.isreversing then
-      self.body:applyTorque(-self.turnMultiplier * inertia)
-    else
-      self.body:applyTorque(self.turnMultiplier * inertia)
-    end
-  end
-
-  if self.isreversing then
-    ax = self.acceleration
-    ay = self.acceleration
-  end
-
-  angle = self.body:getAngle()
-  fx = mass * ax * math.cos(angle)
-  fy = mass * ay * math.sin(angle)
-  self.body:applyForce(fx, fy)
-
-  x, y = self.body:getWorldCenter()
-
-  -- wheel coordinates
-  x1, y1 = rotateVector(-self.width/2, -self.height/2, angle) -- front left
-  x2, y2 = rotateVector(self.width/2, -self.height/2, angle) -- front right
-  x3, y3 = rotateVector(-self.width/2, self.height/2, angle) -- rear left
-  x4, y4 = rotateVector(self.width/2, self.height/2, angle) -- rear right
-
-  table.insert(self.joints, createJoint(ground.body, self.body, x + x1, y + y1, self.wheelForceFriction, self.wheelTorqueFriction))
-  table.insert(self.joints, createJoint(ground.body, self.body, x + x2, y + y2, self.wheelForceFriction, self.wheelTorqueFriction))
-  table.insert(self.joints, createJoint(ground.body, self.body, x + x3, y + y3, self.wheelForceFriction, self.wheelTorqueFriction))
-  table.insert(self.joints, createJoint(ground.body, self.body, x + x4, y + y4, self.wheelForceFriction, self.wheelTorqueFriction))
-
-  -- get self trajectory for new road object angle
   self.dx = self.body:getX() - self.lastX
   self.dy = self.body:getY() - self.lastY
+
   self.lastX = self.body:getX()
   self.lastY = self.body:getY()
+
+  local angle = self.body:getAngle()
+  local turnangle = 0
+  if self.isturningleft then
+      turnangle = -math.pi/2
+  end
+  if self.isturningright then
+      turnangle = math.pi/2
+  end
+
+  -- density of air kg/m^3 (0.0801 lb-mass/ft^3)
+  local airDensity = 1.29
+  -- frontal area of the car m^2
+  local frontalArea = 2.2
+
+  local unitx = math.cos(angle)
+  local unity = math.sin(angle)
+
+  local ax, ay = 0, 0
+  if self.isaccelerating then
+      ax = self.acceleration * -unitx
+      ay = self.acceleration * -unity
+  end
+  if self.isreversing then
+      ax = self.acceleration * unitx
+      ay = self.acceleration * unity
+  end
+
+  self.vx, self.vy = self.body:getLinearVelocity()
+  self.speed = math.sqrt(self.vx^2 + self.vy^2)
+  logger:debug("acceleration: (%.0f, %.0f); velocity: (%.0f, %.0f)",
+    ax, ay, self.vx, self.vy)
+
+  local turnradius = self.wheelbase / math.sin(turnangle)
+  self.angularVelocity = self.speed / turnradius
+  logger:debug("speed: %.0f; angular velocity: %.0f",
+    self.speed, self.angularVelocity)
+  self.body:applyTorque(self.angularVelocity)
+
+  self.force = {}
+  self.force.resist = {}
+
+  self.force.resist.drag = {}
+  self.force.resist.drag.base = 0.5 *
+                                ground.friction.coefficient *
+                                frontalArea *
+                                airDensity *
+                                self.speed
+  self.force.resist.drag.x = self.force.resist.drag.base * -self.vx
+  self.force.resist.drag.y = self.force.resist.drag.base * -self.vy
+
+  self.force.resist.rolling = {}
+  self.force.resist.rolling.base = 30 * self.force.resist.drag.base
+  self.force.resist.rolling.x = self.force.resist.rolling.base * -self.vx
+  self.force.resist.rolling.y = self.force.resist.rolling.base * -self.vy
+
+  -- F_traction = unit vector of heading * engine force
+  self.force.traction = {}
+  self.force.traction.x = self.body:getMass() * ax * unitx
+  self.force.traction.y = self.body:getMass() * ay * unity
+
+  self.force.longitude = {}
+  self.force.longitude.x = self.force.traction.x +
+                           self.force.resist.drag.x +
+                           self.force.resist.rolling.x
+
+  self.force.longitude.y = self.force.traction.y +
+                           self.force.resist.drag.y +
+                           self.force.resist.rolling.y
+
+  logger:debug("engine: (%.0f, %.0f); rr: (%.0f, %.0f); drag: (%.0f, %.0f)",
+    self.force.traction.x, self.force.traction.y,
+    self.force.resist.rolling.x, self.force.resist.rolling.y,
+    self.force.resist.drag.x, self.force.resist.drag.y)
+
+  logger:debug("longitude: (%.0f, %.0f)", self.force.longitude.x,
+    self.force.longitude.y)
+  self.body:applyForce(self.force.longitude.x, self.force.longitude.y)
 end
 
 function player:getTrajectory()
   return math.atan2(self.dy, self.dx)
-end
-
--- utils
-
-function createJoint(surface, object, x, y, maxForceFriction, maxTorqueFriction)
-  j = love.physics.newFrictionJoint(surface, object, x, y, true)
-  j:setMaxForce(object:getMass() * maxForceFriction)
-  j:setMaxTorque(object:getInertia() * maxTorqueFriction)
-  return j
-end
-
--- rotate a vector `x, y` in 2D space by `angle`
--- x2=cosβx1−sinβy1
--- y2=sinβx1+cosβy1
-function rotateVector(x, y, angle)
-  s = math.sin(angle)
-  c = math.cos(angle)
-  return x*c - y*s, x*s + y*c
 end
 
 function player:beginAccelerate()
