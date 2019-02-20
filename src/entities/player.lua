@@ -1,10 +1,10 @@
 local assets = require("assets")
 local base = require('entities.base')
+local ctx = require("gamectx.global")
 local logger = require("logger.logger")
 
 local player = {}
 setmetatable(player, {__index=base})
-local debug = true
 
 -- create car
 function player:load(width, height)
@@ -47,6 +47,29 @@ function player:draw()
                      1,
                      self.width/2,
                      self.height/2)
+  if ctx:get('debugEnabled') then
+      -- save current color settings
+      r, g, b, a = love.graphics.getColor()
+
+      love.graphics.setColor(1.00, 1.00, 1.00)
+      love.graphics.line(self.body:getX(), self.body:getY(),
+        self.force.longitude.x, self.force.longitude.y)
+
+      love.graphics.setColor(1.00, 0.00, 0.00)
+      love.graphics.line(self.body:getX(), self.body:getY(),
+        self.force.traction.x, self.force.traction.y)
+
+      love.graphics.setColor(0.00, 1.00, 0.00)
+      love.graphics.line(self.body:getX(), self.body:getY(),
+        self.force.resist.rolling.x, self.force.resist.rolling.y)
+
+      love.graphics.setColor(0.00, 0.00, 1.00)
+      love.graphics.line(self.body:getX(), self.body:getY(),
+        self.force.resist.drag.x, self.force.resist.drag.y)
+
+      -- reset colors
+      love.graphics.setColor(r, g, b, a)
+  end
 end
 
 function player:update(ground, dt)
