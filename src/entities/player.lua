@@ -140,8 +140,8 @@ function player:update(ground, dt)
 
   -- F_traction = unit vector of heading * engine force
   self.force.traction = {}
-  self.force.traction.x = self.body:getMass() * ax * unitx
-  self.force.traction.y = self.body:getMass() * ay * unity
+  self.force.traction.x = self.body:getMass() * ax
+  self.force.traction.y = self.body:getMass() * ay
 
   self.force.longitude = {}
   self.force.longitude.x = self.force.traction.x +
