@@ -42,7 +42,7 @@ function player:draw()
   love.graphics.draw(self.img,
                      self.body:getX(),
                      self.body:getY(),
-                     self.body:getAngle() - math.pi/2,
+                     self.body:getAngle(),
                      1,
                      1,
                      self.width/2,
