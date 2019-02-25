@@ -1,8 +1,13 @@
 local assets = require("assets")
+local base = require('entities.base')
+
 local player = {}
+setmetatable(player, {__index=base})
 
 -- create car
 function player:load(width, height)
+  -- TODO JCD make a constructor
+  self:genId()
   self.acceleration = 300
 
   -- set sprite
