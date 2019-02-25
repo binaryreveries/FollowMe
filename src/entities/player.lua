@@ -102,12 +102,12 @@ function player:update(ground, dt)
 
   local ax, ay = 0, 0
   if self.isaccelerating then
-      ax = self.acceleration * -unitx
-      ay = self.acceleration * -unity
-  end
-  if self.isreversing then
       ax = self.acceleration * unitx
       ay = self.acceleration * unity
+  end
+  if self.isreversing then
+      ax = self.acceleration * -unitx
+      ay = self.acceleration * -unity
   end
 
   self.vx, self.vy = self.body:getLinearVelocity()
