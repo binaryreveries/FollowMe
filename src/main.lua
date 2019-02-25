@@ -6,8 +6,10 @@ local camera = require("entities.camera")
 local ctx = require('gamectx.global')
 local ground = require("entities.ground")
 local logger = require("logger.logger")
+local netman = require("net.netman")
 local player = require("entities.player")
 local road = require("entities.road")
+local util = require("util.util")
 
 world = nil
 local block1 = nil
@@ -67,6 +69,48 @@ function love.load(args)
 
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
   love.window.setMode(width, height)
+
+  if ctx:getArg('connect') then
+    netman:client()
+    netman:connect(ctx:getArg('connect'), ctx.DEFAULT_PORT)
+  else
+    netman:host()
+  end
+end
+
+-- server handlers
+function love.handlers.netmanPlayerJoinRequest(id)
+  -- let everyone in
+  netman:welcome(id)
+end
+
+function love.handlers.netmanPlayerJoined(id)
+  logger:info("player %s has joined", id)
+end
+
+function love.handlers.netmanPlayerLeft(id)
+  logger:info("player %s has left", id)
+end
+
+-- client handlers
+function love.handlers.netmanConnected(rc)
+  netman:join(player:getId())
+end
+
+function love.handlers.netmanJoined(id, text)
+  logger:info("joined as player %s: %s", id, text)
+end
+
+function love.handlers.netmanRejected(id, text)
+  logger:info("player %s could not join: %s", id, text)
+end
+
+function love.handlers.netmanDisconnected(rc)
+end
+
+-- common handlers
+function love.handlers.netmanRecvCoord(id, coord)
+  logger:debug("player %s @ x: %f; y: %f", id, coord.x, coord.y)
 end
 
 function love.update(dt)
@@ -96,6 +140,7 @@ function love.update(dt)
     distance = love.physics.getDistance(player.fixture, road.frontier.main.fixture)
   end
 
+  netman:sendCoord(player)
 end
 
 function love.draw()

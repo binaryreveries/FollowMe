@@ -1,9 +1,14 @@
-local GLOBAL_CTX_MANAGER_CODE = "gamectx/global_manager.lua"
-
 local ctx = {}
 
-local GLOBAL_CTX_REQ_CHAN = 'ctxReq'
-local reqChan = love.thread.getChannel(GLOBAL_CTX_REQ_CHAN)
+ctx.DEFAULT_PORT = 424242
+ctx.GLOBAL_CTX_MANAGER_CODE = "gamectx/global_manager.lua"
+ctx.GLOBAL_CTX_REQ_CHAN = 'ctxReq'
+ctx.NET_TICKS_S = 1
+ctx.NET_TIMEOUT_S = 5
+ctx.NET_BIND_RETRY_COUNT = 5
+ctx.NET_BIND_RETRY_INTERVAL_S = 1
+
+local reqChan = love.thread.getChannel(ctx.GLOBAL_CTX_REQ_CHAN)
 local respChan = love.thread.newChannel()
 
 function ctx:set(key, val)
@@ -30,7 +35,7 @@ function ctx:getArgs()
 end
 
 function ctx:load()
-  local t = love.thread.newThread(GLOBAL_CTX_MANAGER_CODE)
+  local t = love.thread.newThread(ctx.GLOBAL_CTX_MANAGER_CODE)
   t:start(reqChan)
 end
 
