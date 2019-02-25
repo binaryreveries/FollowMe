@@ -31,7 +31,11 @@ function road:load(x, y, width, length)
   -- main, left and right frontier. The main fontier handles the main movment,
   -- while the left and right frontiers detect which side of the track the
   -- player is on.
-  self.segments = {}
+  self.canvas = love.graphics.newCanvas(10000, 10000)
+  self.borders = {}
+  self.borders.left = {}
+  self.borders.right = {}
+
   self.skin = assets.img.road
 
   self.frontier = {}
@@ -66,12 +70,7 @@ function road:load(x, y, width, length)
 end
 
 function road:draw()
-  for _, segment in pairs(self.segments) do
-    love.graphics.draw(segment.img,
-                       segment.body:getX(),
-                       segment.body:getY(),
-                       segment.body:getAngle())
-  end
+  love.graphics.draw(self.canvas)
   love.graphics.polygon("fill",
     self.frontier.main.body:getWorldPoints(self.frontier.main.shape:getPoints())
   )
@@ -188,7 +187,13 @@ function road:addsegment()
   segment.body:setX(self.frontier.main.body:getX() + fx)
   segment.body:setY(self.frontier.main.body:getY() + fy)
   segment.shape = love.physics.newRectangleShape(0, 0, segment.width, segment.height)
-  table.insert(self.segments, segment)
+  
+  love.graphics.setCanvas(self.canvas)
+  love.graphics.draw(segment.img,
+                     segment.body:getX(),
+                     segment.body:getY(),
+                     segment.body:getAngle())
+  love.graphics.setCanvas()
 end
 
 function road:getPaveThreshold()
