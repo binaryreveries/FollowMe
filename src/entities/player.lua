@@ -53,19 +53,23 @@ function player:draw()
 
       love.graphics.setColor(1.00, 1.00, 1.00)
       love.graphics.line(self.body:getX(), self.body:getY(),
-        self.force.longitude.x, self.force.longitude.y)
+        self.body:getX() + self.force.longitude.x,
+        self.body:getY() + self.force.longitude.y)
 
       love.graphics.setColor(1.00, 0.00, 0.00)
       love.graphics.line(self.body:getX(), self.body:getY(),
-        self.force.traction.x, self.force.traction.y)
+        self.body:getX() + self.force.traction.x,
+        self.body:getY() + self.force.traction.y)
 
       love.graphics.setColor(0.00, 1.00, 0.00)
       love.graphics.line(self.body:getX(), self.body:getY(),
-        self.force.resist.rolling.x, self.force.resist.rolling.y)
+        self.body:getX() + self.force.resist.rolling.x,
+        self.body:getY() + self.force.resist.rolling.y)
 
       love.graphics.setColor(0.00, 0.00, 1.00)
       love.graphics.line(self.body:getX(), self.body:getY(),
-        self.force.resist.drag.x, self.force.resist.drag.y)
+        self.body:getX() + self.force.resist.drag.x,
+        self.body:getY() + self.force.resist.drag.y)
 
       -- reset colors
       love.graphics.setColor(r, g, b, a)
