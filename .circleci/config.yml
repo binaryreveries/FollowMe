@@ -8,7 +8,7 @@ jobs:
       - run:
           name: "Install Prerequisite OS Packages"
           command: |
-            sudo apt-get install lua5.1 luarocks
+            sudo apt-get install lua5.2 luarocks
       - run:
           name: "Setup LuaRocks"
           command: |
