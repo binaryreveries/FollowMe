@@ -1,6 +1,6 @@
 local ctx = {}
 
-ctx.DEFAULT_PORT = 424242
+ctx.DEFAULT_PORT = 4242
 ctx.GLOBAL_CTX_MANAGER_CODE = "gamectx/global_manager.lua"
 ctx.GLOBAL_CTX_REQ_CHAN = 'ctxReq'
 ctx.NET_TICKS_S = 1
