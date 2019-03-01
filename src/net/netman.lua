@@ -11,7 +11,9 @@ netman.CMD_CONNECT = 1
 netman.CMD_JOIN = 2
 netman.CMD_LEAVE = 3
 netman.CMD_WELCOME = 4
-netman.CMD_STOP = 5
+netman.CMD_ANNOUNCE_PLAYER_JOINED = 5
+netman.CMD_ANNOUNCE_PLAYER_LEFT = 6
+netman.CMD_STOP = 7
 
 -- types of data we can request to send
 netman.SEND_COORD = 1
@@ -66,8 +68,18 @@ function netman:leave(id)
 end
 
 -- server commands
-function netman:welcome(id)
-  local cmd = {type=self.CMD_WELCOME, id=id}
+function netman:welcome(id, coordsById)
+  local cmd = {type=self.CMD_WELCOME, id=id, coordsById=coordsById}
+  cmdChan:push(cmd)
+end
+
+function netman:announcePlayerJoined(id, coord)
+  local cmd = {type=self.CMD_ANNOUNCE_PLAYER_JOINED, id=id, coord=coord}
+  cmdChan:push(cmd)
+end
+
+function netman:announcePlayerLeft(id)
+  local cmd = {type=self.CMD_ANNOUNCE_PLAYER_LEFT, id=id}
   cmdChan:push(cmd)
 end
 

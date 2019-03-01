@@ -12,16 +12,12 @@ function camera:set()
   love.graphics.push()
   love.graphics.rotate(-self.rotation)
   love.graphics.scale(1 / self.scaleX, 1 / self.scaleY)
-  love.graphics.translate(-self.x, -self.y)
+  love.graphics.translate(love.graphics.getWidth() / 2 * self.scaleX - self.x,
+                          love.graphics.getHeight() / 2 * self.scaleY - self.y)
 end
 
 function camera:unset()
   love.graphics.pop()
-end
-
-function camera:move(dx, dy)
-  self.x = self.x + (dx or 0)
-  self.y = self.y + (dy or 0)
 end
 
 function camera:rotate(dr)
