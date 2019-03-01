@@ -2,126 +2,9 @@ local assets = require("assets")
 local base = require('entities.base')
 
 local player = {}
-setmetatable(player, {__index=base})
 
--- create car
-function player:load(width, height)
-  -- TODO JCD make a constructor
-  self:genId()
-  self.acceleration = 300
-
-  -- set sprite
-  self.img = assets.img.car
-
-  -- set dimensions based on sprite
-  self.width = self.img:getWidth()
-  self.height = self.img:getHeight()
-
-  self.joints = {}
-
-  self.turnMultiplier = 8
-
-  self.wheelForceFriction = 50
-  self.wheelTorqueFriction = 1
-
-  -- place car in center of world and make it dynamic so it can move
-  self.body = love.physics.newBody(world, width/2, height/2, "dynamic")
-  self.shape = love.physics.newRectangleShape(0, 0, self.width, self.height)
-
-  -- attach fixture to body and set density to 1 (density increases mass)
-  self.fixture = love.physics.newFixture(self.body, self.shape, 1)
-  self.lastX = self.body:getX()
-  self.lastY = self.body:getY()
-  self.dx = self.body:getX() - self.lastX
-  self.dy = self.body:getY() - self.lastY
-  self.trajectory = math.atan2(self.dx, self.dy)
-end
-
-function player:draw()
-  love.graphics.draw(self.img,
-                     self.body:getX(),
-                     self.body:getY(),
-                     self.body:getAngle() - math.pi/2,
-                     1,
-                     1,
-                     self.width/2,
-                     self.height/2)
-end
-
-function player:update(ground, dt)
-  for index, joint in pairs(self.joints) do
-    joint:destroy()
-  end
-
-  self.joints = {}
-
-  -- setup keyboard event handling
-  inertia = self.body:getInertia()
-
-  angle = self.body:getAngle()
-  mass = self.body:getMass()
-  if self.isaccelerating then
-    fx = mass * -self.acceleration * math.cos(angle)
-    fy = mass * -self.acceleration * math.sin(angle)
-    self.body:applyForce(fx, fy)
-  end
-
-  if self.isbraking then
-  end
-
-  if self.isturningleft then
-    if self.isreversing then
-      self.body:applyTorque(self.turnMultiplier * inertia)
-    else
-      self.body:applyTorque(-self.turnMultiplier * inertia)
-    end
-  end
-
-  if self.isturningright then
-    if self.isreversing then
-      self.body:applyTorque(-self.turnMultiplier * inertia)
-    else
-      self.body:applyTorque(self.turnMultiplier * inertia)
-    end
-  end
-
-  if self.isreversing then
-    fx = mass * self.acceleration * math.cos(angle)
-    fy = mass * self.acceleration * math.sin(angle)
-    self.body:applyForce(fx, fy)
-  end
-
-  x, y = self.body:getWorldCenter()
-
-  -- wheel coordinates
-  x1, y1 = rotateVector(-self.width/2, -self.height/2, angle) -- front left
-  x2, y2 = rotateVector(self.width/2, -self.height/2, angle) -- front right
-  x3, y3 = rotateVector(-self.width/2, self.height/2, angle) -- rear left
-  x4, y4 = rotateVector(self.width/2, self.height/2, angle) -- rear right
-
-  table.insert(self.joints, createJoint(ground.body, self.body, x + x1, y + y1, self.wheelForceFriction, self.wheelTorqueFriction))
-  table.insert(self.joints, createJoint(ground.body, self.body, x + x2, y + y2, self.wheelForceFriction, self.wheelTorqueFriction))
-  table.insert(self.joints, createJoint(ground.body, self.body, x + x3, y + y3, self.wheelForceFriction, self.wheelTorqueFriction))
-  table.insert(self.joints, createJoint(ground.body, self.body, x + x4, y + y4, self.wheelForceFriction, self.wheelTorqueFriction))
-
-  vx, vy = self.body:getLinearVelocity()
-  self.speed = math.sqrt((vx * vx) + (vy * vy))
-
-  -- get self trajectory for new road object angle
-  self.dx = self.body:getX() - self.lastX
-  self.dy = self.body:getY() - self.lastY
-  self.lastX = self.body:getX()
-  self.lastY = self.body:getY()
-end
-
-function player:getTrajectory()
-  return math.atan2(self.dy, self.dx)
-end
-
--- utils
-
-function createJoint(surface, object, x, y, maxForceFriction, maxTorqueFriction)
-  j = love.physics.newFrictionJoint(surface, object, x, y, true)
+local function createJoint(surface, object, x, y, maxForceFriction, maxTorqueFriction)
+  local j = love.physics.newFrictionJoint(surface, object, x, y, true)
   j:setMaxForce(object:getMass() * maxForceFriction)
   j:setMaxTorque(object:getInertia() * maxTorqueFriction)
   return j
@@ -130,50 +13,165 @@ end
 -- rotate a vector `x, y` in 2D space by `angle`
 -- x2=cosβx1−sinβy1
 -- y2=sinβx1+cosβy1
-function rotateVector(x, y, angle)
-  s = math.sin(angle)
-  c = math.cos(angle)
+local function rotateVector(x, y, angle)
+  local s = math.sin(angle)
+  local c = math.cos(angle)
   return x*c - y*s, x*s + y*c
 end
 
-function player:beginAccelerate()
-  self.isaccelerating = true
-end
+function player:create(x, y, id)
+  local p = {
+    acceleration=300,
+    turnMultiplier=8,
+    wheelForceFriction=50,
+    wheelTorqueFriction=1,
 
-function player:beginBrake()
-  self.isbraking = true
-end
+    img=assets.img.car,
+    width=assets.img.car:getWidth(),
+    height=assets.img.car:getHeight(),
 
-function player:beginReversing()
-  self.isreversing = true
-end
+    joints={},
+    body=love.physics.newBody(world, x, y, "dynamic"),
+    shape=love.physics.newRectangleShape(0, 0, assets.img.car:getWidth(),
+                                         assets.img.car:getHeight()),
+    fixture=nil,
+    lastX=x,
+    lastY=y,
+  }
+  setmetatable(p, {__index=base})
 
-function player:beginTurningLeft()
-  self.isturningleft = true
-end
+  if id then
+    p:setId(id)
+  else
+    p:genId()
+  end
 
-function player:beginTurningRight()
-  self.isturningright = true
-end
+  -- attach fixture to body and set density to 1 (density increases mass)
+  p.fixture = love.physics.newFixture(p.body, p.shape, 1)
 
-function player:endAccelerate()
-  self.isaccelerating = false
-end
+  function p:destroy()
+    p.body:destroy()
+  end
 
-function player:endBrake()
-  self.isbraking = false
-end
+  function p:update(ground, dt)
+    for index, joint in pairs(self.joints) do
+      joint:destroy()
+    end
 
-function player:endReversing()
-  self.isreversing = false
-end
+    self.joints = {}
 
-function player:endTurningLeft()
-  self.isturningleft = false
-end
+    -- setup keyboard event handling
+    local inertia = self.body:getInertia()
 
-function player:endTurningRight()
-  self.isturningright = false
+    local angle = self.body:getAngle()
+    local mass = self.body:getMass()
+    if self.isaccelerating then
+      local fx = mass * -self.acceleration * math.cos(angle)
+      local fy = mass * -self.acceleration * math.sin(angle)
+      self.body:applyForce(fx, fy)
+    end
+
+    if self.isbraking then
+    end
+
+    if self.isturningleft then
+      if self.isreversing then
+        self.body:applyTorque(self.turnMultiplier * inertia)
+      else
+        self.body:applyTorque(-self.turnMultiplier * inertia)
+      end
+    end
+
+    if self.isturningright then
+      if self.isreversing then
+        self.body:applyTorque(-self.turnMultiplier * inertia)
+      else
+        self.body:applyTorque(self.turnMultiplier * inertia)
+      end
+    end
+
+    if self.isreversing then
+      fx = mass * self.acceleration * math.cos(angle)
+      fy = mass * self.acceleration * math.sin(angle)
+      self.body:applyForce(fx, fy)
+    end
+
+    local x, y = self.body:getWorldCenter()
+
+    -- wheel coordinates
+    local x1, y1 = rotateVector(-self.width/2, -self.height/2, angle) -- front left
+    local x2, y2 = rotateVector(self.width/2, -self.height/2, angle) -- front right
+    local x3, y3 = rotateVector(-self.width/2, self.height/2, angle) -- rear left
+    local x4, y4 = rotateVector(self.width/2, self.height/2, angle) -- rear right
+
+    table.insert(self.joints, createJoint(ground.body, self.body, x + x1, y + y1, self.wheelForceFriction, self.wheelTorqueFriction))
+    table.insert(self.joints, createJoint(ground.body, self.body, x + x2, y + y2, self.wheelForceFriction, self.wheelTorqueFriction))
+    table.insert(self.joints, createJoint(ground.body, self.body, x + x3, y + y3, self.wheelForceFriction, self.wheelTorqueFriction))
+    table.insert(self.joints, createJoint(ground.body, self.body, x + x4, y + y4, self.wheelForceFriction, self.wheelTorqueFriction))
+
+    local vx, vy = self.body:getLinearVelocity()
+    self.speed = math.sqrt((vx * vx) + (vy * vy))
+
+    self.lastX = self.body:getX()
+    self.lastY = self.body:getY()
+  end
+
+  function p:draw()
+    love.graphics.draw(self.img,
+    self.body:getX(),
+    self.body:getY(),
+    self.body:getAngle() - math.pi/2,
+    1,
+    1,
+    self.width/2,
+    self.height/2)
+  end
+
+  function p:getTrajectory()
+    return math.atan2(self.body:getY() - self.lastY, self.body:getX() - self.lastX)
+  end
+
+  function p:beginAccelerate()
+    self.isaccelerating = true
+  end
+
+  function p:beginBrake()
+    self.isbraking = true
+  end
+
+  function p:beginReversing()
+    self.isreversing = true
+  end
+
+  function p:beginTurningLeft()
+    self.isturningleft = true
+  end
+
+  function p:beginTurningRight()
+    self.isturningright = true
+  end
+
+  function p:endAccelerate()
+    self.isaccelerating = false
+  end
+
+  function p:endBrake()
+    self.isbraking = false
+  end
+
+  function p:endReversing()
+    self.isreversing = false
+  end
+
+  function p:endTurningLeft()
+    self.isturningleft = false
+  end
+
+  function p:endTurningRight()
+    self.isturningright = false
+  end
+
+  return p
 end
 
 return player
