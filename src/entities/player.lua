@@ -60,21 +60,32 @@ function player:update(ground, dt)
 
   angle = self.body:getAngle()
   mass = self.body:getMass()
-  if love.keyboard.isDown("w") then
-    if love.keyboard.isDown("a") then
-      self.body:applyTorque(-self.turnMultiplier * inertia)
-    elseif love.keyboard.isDown("d") then
-      self.body:applyTorque(self.turnMultiplier * inertia)
-    end
+  if self.isaccelerating then
     fx = mass * -self.acceleration * math.cos(angle)
     fy = mass * -self.acceleration * math.sin(angle)
     self.body:applyForce(fx, fy)
-  elseif love.keyboard.isDown("s") then
-    if love.keyboard.isDown("a") then
+  end
+
+  if self.isbraking then
+  end
+
+  if self.isturningleft then
+    if self.isreversing then
       self.body:applyTorque(self.turnMultiplier * inertia)
-    elseif love.keyboard.isDown("d") then
+    else
       self.body:applyTorque(-self.turnMultiplier * inertia)
     end
+  end
+
+  if self.isturningright then
+    if self.isreversing then
+      self.body:applyTorque(-self.turnMultiplier * inertia)
+    else
+      self.body:applyTorque(self.turnMultiplier * inertia)
+    end
+  end
+
+  if self.isreversing then
     fx = mass * self.acceleration * math.cos(angle)
     fy = mass * self.acceleration * math.sin(angle)
     self.body:applyForce(fx, fy)
@@ -123,6 +134,46 @@ function rotateVector(x, y, angle)
   s = math.sin(angle)
   c = math.cos(angle)
   return x*c - y*s, x*s + y*c
+end
+
+function player:beginAccelerate()
+  self.isaccelerating = true
+end
+
+function player:beginBrake()
+  self.isbraking = true
+end
+
+function player:beginReversing()
+  self.isreversing = true
+end
+
+function player:beginTurningLeft()
+  self.isturningleft = true
+end
+
+function player:beginTurningRight()
+  self.isturningright = true
+end
+
+function player:endAccelerate()
+  self.isaccelerating = false
+end
+
+function player:endBrake()
+  self.isbraking = false
+end
+
+function player:endReversing()
+  self.isreversing = false
+end
+
+function player:endTurningLeft()
+  self.isturningleft = false
+end
+
+function player:endTurningRight()
+  self.isturningright = false
 end
 
 return player
