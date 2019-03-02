@@ -64,7 +64,7 @@ function love.load(args)
   objects.borderBottom.fixture = love.physics.newFixture(objects.borderBottom.body, objects.borderBottom.shape)
 
   -- create road
-  road:load(player.body:getX()-50, player.body:getY(), 8, 128)
+  road:load(player.body:getX()-50, player.body:getY(), 8, 128, worldWidth, worldHeight)
   paveThreshold = road:getPaveThreshold()
 
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)

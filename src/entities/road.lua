@@ -2,7 +2,7 @@ local assets = require("assets")
 local road = {}
 
 -- initialize road at (x, y) with each segment of given width and length
-function road:load(x, y, width, length)
+function road:load(x, y, width, length, worldWidth, worldLength)
   -- Road paving is accompished in each update by moving and rotating the
   -- frontier forward. We need to ensure that all parts of the new frontier
   -- position are in front of the old position. We can think of these two
@@ -31,7 +31,7 @@ function road:load(x, y, width, length)
   -- main, left and right frontier. The main fontier handles the main movment,
   -- while the left and right frontiers detect which side of the track the
   -- player is on.
-  self.canvas = love.graphics.newCanvas(10000, 10000)
+  self.canvas = love.graphics.newCanvas(worldWidth, worldLength)
   self.borders = {}
   self.borders.left = {}
   self.borders.right = {}
