@@ -30,7 +30,7 @@ function love.load(args)
 
   assets:load()
   camera:load(worldWidth/2 - width/2, worldHeight/2 - height/2)
-  ground:load(width, height)
+  ground:load(worldWidth/2, worldHeight/2, width, height)
   player:load(worldWidth/2, worldHeight/2)
 
   objects = {}

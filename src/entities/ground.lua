@@ -2,8 +2,8 @@ local assets = require("assets")
 local ground = {}
 
 -- create ground
-function ground:load(width, height)
-  self.body = love.physics.newBody(world, width/2, height/2)
+function ground:load(x, y, width, height)
+  self.body = love.physics.newBody(world, x, y)
   self.shape = love.physics.newRectangleShape(width, height)
 end
 
