@@ -183,7 +183,7 @@ function love.update(dt)
     netman:sendCoord(p)
   end
 
-  camera:setPosition(playerLocal.lastX, playerLocal.lastY)
+  camera:setPosition(playerLocal:getPosition())
 end
 
 function love.draw()

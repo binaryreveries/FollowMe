@@ -111,9 +111,6 @@ function player:create(x, y, id)
 
     local vx, vy = self.body:getLinearVelocity()
     self.speed = math.sqrt((vx * vx) + (vy * vy))
-
-    self.lastX = self.body:getX()
-    self.lastY = self.body:getY()
   end
 
   function p:draw()
@@ -127,8 +124,13 @@ function player:create(x, y, id)
     self.height/2)
   end
 
+  function p:getPosition()
+    return self.body:getX(), self.body:getY()
+  end
+
   function p:getTrajectory()
-    return math.atan2(self.body:getY() - self.lastY, self.body:getX() - self.lastX)
+    local vx, vy = self.body:getLinearVelocity()
+    return math.atan2(vy, vx)
   end
 
   function p:beginAccelerate()
