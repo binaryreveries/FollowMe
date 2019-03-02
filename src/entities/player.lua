@@ -2,7 +2,7 @@ local assets = require("assets")
 local player = {}
 
 -- create car
-function player:load(width, height)
+function player:load(x, y)
   self.acceleration = 300
 
   -- set sprite
@@ -20,7 +20,7 @@ function player:load(width, height)
   self.wheelTorqueFriction = 1
 
   -- place car in center of world and make it dynamic so it can move
-  self.body = love.physics.newBody(world, width/2, height/2, "dynamic")
+  self.body = love.physics.newBody(world, x, y, "dynamic")
   self.shape = love.physics.newRectangleShape(0, 0, self.width, self.height)
 
   -- attach fixture to body and set density to 1 (density increases mass)

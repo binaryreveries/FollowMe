@@ -12,6 +12,8 @@ local road = require("entities.road")
 world = nil
 local block1 = nil
 local border = nil
+local worldHeight = 10000
+local worldWidth = 10000
 local height = 650
 local width = 650
 
@@ -27,9 +29,9 @@ function love.load(args)
   world = love.physics.newWorld(0, 0, true) -- create a world with no horizontal or vertical gravity
 
   assets:load()
-  camera:load()
+  camera:load(worldWidth/2 - width/2, worldHeight/2 - height/2)
   ground:load(width, height)
-  player:load(width, height)
+  player:load(worldWidth/2, worldHeight/2)
 
   objects = {}
   objects.block1 = {}

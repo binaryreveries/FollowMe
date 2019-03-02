@@ -1,8 +1,8 @@
 local camera = {}
 
-function camera:load()
-  self.x = 0
-  self.y = 0
+function camera:load(x, y)
+  self.x = x
+  self.y = y
   self.scaleX = 1
   self.scaleY = 1
   self.rotation = 0
