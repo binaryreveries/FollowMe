@@ -86,10 +86,39 @@ function road:draw()
   love.graphics.setColor(255, 255, 255, 255)
 end
 
-function road:update(angle, roadShift)
+  
+function road:update(newSegments)
   -- create a road segment at the position and angle of the frontier.
-  self:addsegment()
+  for _, s in pairs(newSegments) do
+  self:addSegment(s.x, s.y, s.angle)
+  end
+  i = table.getn(newSegments)
+  self:setFrontier(newSegments[i].x, newSegments[i].y, newSegments[i].angle, "center")
+end
 
+
+-- utils
+
+function road:addSegment(x, y, angle)
+  segment = {}
+  segment.img = self.skin
+  segment.width = segment.img:getWidth()
+  segment.height = segment.img:getHeight()
+  segment.body = love.physics.newBody(world)
+  segment.body:setAngle(angle)
+  fx = math.sin(segment.body:getAngle()) * (segment.height/2)
+  fy = math.cos(segment.body:getAngle()) * -(segment.height/2)
+  segment.body:setX(x + fx)
+  segment.body:setY(y + fy)
+  segment.shape = love.physics.newRectangleShape(0, 0, segment.width, segment.height)
+  table.insert(self.segments, segment)
+end
+
+function road:getPaveThreshold()
+  return self.paveThreshold
+end
+
+function road:pushFrontier(angle, roadShift)
   -- Radians in love range between pi and -pi. To ensure that we never have
   -- angles outside this range, we check if abs(deltaAngle) is greater than pi.
   -- This can happen when crossing the pi/-pi theshold (e.g. the delta between
@@ -121,18 +150,16 @@ function road:update(angle, roadShift)
     end
   end
 
-  -- Set angles of all frontier objects to the new angle
-  self.frontier.main.body:setAngle(angle)
-  self.frontier.left.body:setAngle(angle)
-  self.frontier.right.body:setAngle(angle)
-
   -- Get the old frontier position, and calculate the new position based on the
   -- new angle.
-  mainX = self.frontier.main.body:getX()
-  mainY = self.frontier.main.body:getY()
-  deltaMainX = (self.roadPush) * math.cos(angle)
-  deltaMainY = (self.roadPush) * math.sin(angle)
+  x = self.frontier.main.body:getX() + (self.roadPush) * math.cos(angle)
+  y = self.frontier.main.body:getY() + (self.roadPush) * math.sin(angle)
 
+  self:setFrontier(x, y, angle, roadShift)
+  return self.frontier.main.body:getX(), self.frontier.main.body:getY(), self.frontier.main.body:getAngle()
+end
+
+function road:setFrontier(x, y, angle, roadShift)
   -- calculate positions of left and right frontiers relative to the new main
   -- frontier.
   leftAngle = angle - (math.pi/2)
@@ -147,7 +174,7 @@ function road:update(angle, roadShift)
   end
   deltaRightX = self.frontier.main.length/3 * math.cos(rightAngle)
   deltaRightY = self.frontier.main.length/3 * math.sin(rightAngle)
-
+  
   -- if the player is near the edge of the frontier, calculate deltaSlides,
   -- which shift the frontier perpendicular to the trajectory of the player to
   -- center the frontier infront of the player.
@@ -163,36 +190,19 @@ function road:update(angle, roadShift)
     deltaSlideX = self.roadSlide * math.cos(slideAngle)
     deltaSlideY = self.roadSlide * math.sin(slideAngle)
   end
-
+  
   -- apply all transformations to the frontiers.
-  self.frontier.main.body:setX( mainX + deltaMainX + deltaSlideX)
-  self.frontier.main.body:setY( mainY + deltaMainY + deltaSlideY)
-  self.frontier.left.body:setX( mainX + deltaMainX + deltaSlideX + deltaLeftX)
-  self.frontier.left.body:setY( mainY + deltaMainY + deltaSlideY + deltaLeftY)
-  self.frontier.right.body:setX(mainX + deltaMainX + deltaSlideX + deltaRightX)
-  self.frontier.right.body:setY(mainY + deltaMainY + deltaSlideY + deltaRightY)
-end
-
-
--- utils
-
-function road:addsegment()
-  segment = {}
-  segment.img = self.skin
-  segment.width = segment.img:getWidth()
-  segment.height = segment.img:getHeight()
-  segment.body = love.physics.newBody(world)
-  segment.body:setAngle(self.frontier.main.body:getAngle())
-  fx = math.sin(segment.body:getAngle()) * (segment.height/2)
-  fy = math.cos(segment.body:getAngle()) * -(segment.height/2)
-  segment.body:setX(self.frontier.main.body:getX() + fx)
-  segment.body:setY(self.frontier.main.body:getY() + fy)
-  segment.shape = love.physics.newRectangleShape(0, 0, segment.width, segment.height)
-  table.insert(self.segments, segment)
-end
-
-function road:getPaveThreshold()
-  return self.paveThreshold
+  self.frontier.main.body:setX( x + deltaSlideX)
+  self.frontier.main.body:setY( y + deltaSlideY)
+  self.frontier.left.body:setX( x + deltaSlideX + deltaLeftX)
+  self.frontier.left.body:setY( y + deltaSlideY + deltaLeftY)
+  self.frontier.right.body:setX(x + deltaSlideX + deltaRightX)
+  self.frontier.right.body:setY(y + deltaSlideY + deltaRightY)
+  
+  -- Set angles of all frontier objects to the new angle
+  self.frontier.main.body:setAngle(angle)
+  self.frontier.left.body:setAngle(angle)
+  self.frontier.right.body:setAngle(angle)
 end
 
 return road

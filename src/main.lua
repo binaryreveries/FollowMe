@@ -164,6 +164,8 @@ function love.update(dt)
     -- detect if player is triggering new road creation and calculate location of new road
     local distance = love.physics.getDistance(p.fixture, road.frontier.main.fixture)
     -- collided with frontier
+    local newSegments = {}
+    local i = 1
     while distance < paveThreshold do
       -- paving new road
       local leftDistance = love.physics.getDistance(p.fixture, road.frontier.left.fixture)
@@ -176,10 +178,19 @@ function love.update(dt)
       else
         roadShift = "center"
       end
-      road:update(p:getTrajectory(), roadShift)
+      x, y, angle = road:pushFrontier(p:getTrajectory(), roadShift)
+      newSegments[i] = {}
+      newSegments[i].x = x
+      newSegments[i].y = y
+      newSegments[i].angle = angle
+      i = i + 1
       distance = love.physics.getDistance(p.fixture, road.frontier.main.fixture)
     end
-
+    
+    if table.getn(newSegments) > 0 then
+      road:update(newSegments)
+    end
+    
     netman:sendCoord(p)
   end
 
