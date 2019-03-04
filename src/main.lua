@@ -165,29 +165,24 @@ function love.update(dt)
     local distance = love.physics.getDistance(p.fixture, road.frontier.main.fixture)
     -- collided with frontier
     local newSegments = {}
-    local i = 1
     while distance < paveThreshold do
       -- paving new road
       local leftDistance = love.physics.getDistance(p.fixture, road.frontier.left.fixture)
       local rightDistance = love.physics.getDistance(p.fixture, road.frontier.right.fixture)
       local roadShift
       if leftDistance < paveThreshold then
-        roadShift = "left"
+        local roadShift = "left"
       elseif rightDistance < paveThreshold then
-        roadShift = "right"
+        local roadShift = "right"
       else
-        roadShift = "center"
+        local roadShift = "center"
       end
-      x, y, angle = road:pushFrontier(p:getTrajectory(), roadShift)
-      newSegments[i] = {}
-      newSegments[i].x = x
-      newSegments[i].y = y
-      newSegments[i].angle = angle
-      i = i + 1
+      local x, y, angle = road:pushFrontier(p:getTrajectory(), roadShift)
+      table.insert(newSegments, {x=x, y=y, angle=angle})
       distance = love.physics.getDistance(p.fixture, road.frontier.main.fixture)
     end
     
-    if table.getn(newSegments) > 0 then
+    if #newSegments > 0 then
       road:update(newSegments)
     end
     
