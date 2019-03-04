@@ -180,11 +180,11 @@ function road:setFrontier(x, y, angle, roadShift)
   -- center the frontier infront of the player.
   local deltaSlideX = nil
   local deltaSlideY = nil
-  local slideAngle = nil
   if roadShift == "center" then
     deltaSlideX = 0
     deltaSlideY = 0
   else
+    local slideAngle = nil
     if roadShift == "left" then
       slideAngle = leftAngle
     elseif roadShift == "right" then

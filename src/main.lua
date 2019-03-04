@@ -171,11 +171,11 @@ function love.update(dt)
       local rightDistance = love.physics.getDistance(p.fixture, road.frontier.right.fixture)
       local roadShift
       if leftDistance < paveThreshold then
-        local roadShift = "left"
+        roadShift = "left"
       elseif rightDistance < paveThreshold then
-        local roadShift = "right"
+        roadShift = "right"
       else
-        local roadShift = "center"
+        roadShift = "center"
       end
       local x, y, angle = road:pushFrontier(p:getTrajectory(), roadShift)
       table.insert(newSegments, {x=x, y=y, angle=angle})
