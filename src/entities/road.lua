@@ -92,8 +92,8 @@ function road:update(newSegments)
   for _, s in ipairs(newSegments) do
   self:addSegment(s.x, s.y, s.angle)
   end
-  local i = table.getn(newSegments)
-  self:setFrontier(newSegments[i].x, newSegments[i].y, newSegments[i].angle, "center")
+  local lastSegment = newSegments[#newSegments]
+  self:setFrontier(lastSegment.x, lastSegment.y, lastSegment.angle, "center")
 end
 
 
