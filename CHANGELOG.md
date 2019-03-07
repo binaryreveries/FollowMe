@@ -5,8 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.3.2] - 2019-03-01
+### Added
+- Add networked multiplayer
+- Host a server by default
+- Connect to a server with `--connect <hostname>`
+- Simulate remote player using local physics system
+
 ### Changed
 - Decouple keyboard controls from `player:update`.
+- Decouple player entities from player module
 
 ## [0.3.1] - 2019-02-09
 ### Added
@@ -83,7 +92,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hello World unity project.
 - Basic road building functionality.
 
-[Unreleased]: https://github.com/binaryreveries/FollowMe/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/binaryreveries/FollowMe/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/binaryreveries/FollowMe/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/binaryreveries/FollowMe/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/binaryreveries/FollowMe/compare/v0.2.6...v0.3.0
 [0.2.6]: https://github.com/binaryreveries/FollowMe/compare/v0.2.5...v0.2.6

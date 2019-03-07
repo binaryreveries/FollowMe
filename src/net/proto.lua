@@ -6,14 +6,16 @@ local serpent = require("serpent.serpent")
 local proto = {}
 
 -- increment the version whenever the proto changes
-local VERSION = 1
+local VERSION = 2
 
 -- types of commands
 local PROTOCMD_JOIN = 1 -- join the server
 local PROTOCMD_LEAVE = 2 -- leave the server
 local PROTOCMD_WELCOME = 3 -- welcome the client into the server
 local PROTOCMD_REJECT = 4 -- disallow the client from joining the server
-local PROTOCMD_SEND = 5 -- a payload of data
+local PROTOCMD_ANNOUNCE_PLAYER_JOINED = 5 -- a new player appeared
+local PROTOCMD_ANNOUNCE_PLAYER_LEFT = 6 -- a player has left
+local PROTOCMD_SEND = 7 -- a payload of data
 
 -- keep track of client peers by player id
 local clientsById = {}
@@ -92,7 +94,7 @@ function proto:serverDisconnected(server)
   joinedPeers[server] = nil
 end
 
-function proto:welcome(id)
+function proto:welcome(id, coordsById)
   local client = clientsById[id]
   if not client then
     logger:error("could not find connection for player %s", id)
@@ -100,7 +102,8 @@ function proto:welcome(id)
   end
   joinedPeers[client] = true
   love.event.push('netmanPlayerJoined', id)
-  local data = {cmd=PROTOCMD_WELCOME, id=id, text="welcome to the server!"}
+  local data = {cmd=PROTOCMD_WELCOME, id=id, coordsById=coordsById,
+                text="welcome to the server!"}
   local msg = msgFromData(data)
   client:send(msg)
 end
@@ -109,6 +112,22 @@ function proto:reject(peer, id, reason)
   local data = {cmd=PROTOCMD_REJECT, id=id, text=reason}
   local msg = msgFromData(data)
   peer:send(msg)
+end
+
+function proto:announcePlayerJoined(id, coord)
+  local data = {cmd=PROTOCMD_ANNOUNCE_PLAYER_JOINED, id=id, coord=coord}
+  local msg = msgFromData(data)
+  for peer in pairs(joinedPeers) do
+    peer:send(msg)
+  end
+end
+
+function proto:announcePlayerLeft(id)
+  local data = {cmd=PROTOCMD_ANNOUNCE_PLAYER_LEFT, id=id}
+  local msg = msgFromData(data)
+  for peer in pairs(joinedPeers) do
+    peer:send(msg)
+  end
 end
 
 function proto:prepare(peer, data)
@@ -133,6 +152,7 @@ function proto:send(peer)
 end
 
 function proto:broadcast(server)
+  -- TODO JCD make it so we can broadcast more than just sendData
   local data = getSendData(server)
   local msg = msgFromData(data)
   for peer in pairs(joinedPeers) do
@@ -172,8 +192,15 @@ function proto:recv(peer, msg)
   elseif data.cmd == PROTOCMD_WELCOME then
     joinedPeers[peer] = true
     love.event.push('netmanJoined', data.id, data.text)
+    for id, coord in pairs(data.coordsById) do
+      love.event.push('netmanPlayerJoined', id, coord)
+    end
   elseif data.cmd == PROTOCMD_REJECT then
     love.event.push('netmanRejected', data.id, data.text)
+  elseif data.cmd == PROTOCMD_ANNOUNCE_PLAYER_JOINED then
+    love.event.push('netmanPlayerJoined', data.id, data.coord)
+  elseif data.cmd == PROTOCMD_ANNOUNCE_PLAYER_LEFT then
+    love.event.push('netmanPlayerLeft', data.id)
   elseif data.cmd == PROTOCMD_SEND then
     for id, coord in pairs(data.coordsById) do
       love.event.push('netmanRecvCoord', id, coord)

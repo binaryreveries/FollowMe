@@ -17,6 +17,11 @@ local border = nil
 local height = 650
 local width = 650
 
+local isServer = false
+
+local playerLocal
+local playersById = {}
+
 function love.load(args)
   ctx:load()
   argparse:parse(args)
@@ -31,7 +36,9 @@ function love.load(args)
   assets:load()
   camera:load()
   ground:load(width, height)
-  player:load(width, height)
+
+  playerLocal = player:create(width / 2, height / 2)
+  playersById[playerLocal:getId()] = playerLocal
 
   objects = {}
   objects.block1 = {}
@@ -64,37 +71,34 @@ function love.load(args)
   objects.borderBottom.fixture = love.physics.newFixture(objects.borderBottom.body, objects.borderBottom.shape)
 
   -- create road
-  road:load(player.body:getX()-50, player.body:getY(), 8, 128)
+  road:load(playerLocal.body:getX()-50, playerLocal.body:getY(), 8, 128)
   paveThreshold = road:getPaveThreshold()
 
   love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
   love.window.setMode(width, height)
 
-  if ctx:getArg('connect') then
+  isServer = not ctx:getArg('connect')
+  if isServer then
+    netman:host()
+  else
     netman:client()
     netman:connect(ctx:getArg('connect'), ctx.DEFAULT_PORT)
-  else
-    netman:host()
   end
 end
 
 -- server handlers
 function love.handlers.netmanPlayerJoinRequest(id)
   -- let everyone in
-  netman:welcome(id)
-end
-
-function love.handlers.netmanPlayerJoined(id)
-  logger:info("player %s has joined", id)
-end
-
-function love.handlers.netmanPlayerLeft(id)
-  logger:info("player %s has left", id)
+  local coordsById = {}
+  for id, p in pairs(playersById) do
+    coordsById[id] = p:getCoord()
+  end
+  netman:welcome(id, coordsById)
 end
 
 -- client handlers
 function love.handlers.netmanConnected(rc)
-  netman:join(player:getId())
+  netman:join(playerLocal:getId())
 end
 
 function love.handlers.netmanJoined(id, text)
@@ -106,11 +110,47 @@ function love.handlers.netmanRejected(id, text)
 end
 
 function love.handlers.netmanDisconnected(rc)
+  for id in pairs(playersById) do
+    if id ~= playerLocal:getId() then
+      love.event.push('netmanPlayerLeft', id)
+    end
+  end
 end
 
 -- common handlers
+function love.handlers.netmanPlayerJoined(id, coord)
+  if id == playerLocal:getId() then
+    return
+  end
+
+  logger:info("player %s has joined", id)
+  local p = player:create(width / 2, height / 2, id)
+  if coord then
+    p:setCoord(coord)
+  end
+  playersById[id] = p
+
+  if isServer then
+    netman:announcePlayerJoined(id, coord)
+  end
+end
+
+function love.handlers.netmanPlayerLeft(id)
+  logger:info("player %s has left", id)
+  playersById[id]:destroy()
+  playersById[id] = nil
+
+  if isServer then
+    netman:announcePlayerLeft(id)
+  end
+end
+
 function love.handlers.netmanRecvCoord(id, coord)
-  logger:debug("player %s @ x: %f; y: %f", id, coord.x, coord.y)
+  local p = playersById[id]
+  if not p or p:getId() == playerLocal:getId() then
+    return
+  end
+  p:setCoord(coord)
 end
 
 function love.update(dt)
@@ -118,29 +158,32 @@ function love.update(dt)
     world:update(dt) -- put the world in motion!
   end
 
-  camera:move(player.dx, player.dy)
+  for _, p in pairs(playersById) do
+    p:update(ground, dt)
 
-  player:update(ground, dt)
-
-  -- detect if player is triggering new road creation and calculate location of new road
-  distance = love.physics.getDistance(player.fixture, road.frontier.main.fixture)
-  -- collided with frontier
-  while distance < paveThreshold do
-    -- paving new road
-    leftDistance = love.physics.getDistance(player.fixture, road.frontier.left.fixture)
-    rightDistance = love.physics.getDistance(player.fixture, road.frontier.right.fixture)
-    if leftDistance < paveThreshold then
-      roadShift = "left"
-    elseif rightDistance < paveThreshold then
-      roadShift = "right"
-    else
-      roadShift = "center"
+    -- detect if player is triggering new road creation and calculate location of new road
+    local distance = love.physics.getDistance(p.fixture, road.frontier.main.fixture)
+    -- collided with frontier
+    while distance < paveThreshold do
+      -- paving new road
+      local leftDistance = love.physics.getDistance(p.fixture, road.frontier.left.fixture)
+      local rightDistance = love.physics.getDistance(p.fixture, road.frontier.right.fixture)
+      local roadShift
+      if leftDistance < paveThreshold then
+        roadShift = "left"
+      elseif rightDistance < paveThreshold then
+        roadShift = "right"
+      else
+        roadShift = "center"
+      end
+      road:update(p:getTrajectory(), roadShift)
+      distance = love.physics.getDistance(p.fixture, road.frontier.main.fixture)
     end
-    road:update(player:getTrajectory(), roadShift)
-    distance = love.physics.getDistance(player.fixture, road.frontier.main.fixture)
+
+    netman:sendCoord(p)
   end
 
-  netman:sendCoord(player)
+  camera:setPosition(playerLocal:getPosition())
 end
 
 function love.draw()
@@ -158,39 +201,41 @@ function love.draw()
 
   road:draw()
 
-  player:draw()
+  for _, p in pairs(playersById) do
+    p:draw()
+  end
 
   camera:unset()
 end
 
 function love.filedropped(file)
-  player.img = love.graphics.newImage(file)
+  playerLocal.img = love.graphics.newImage(file)
 end
 
 function love.keypressed(key, scancode, isrepeat)
   if key == "w" then
-    player:beginAccelerate()
+    playerLocal:beginAccelerate()
   elseif key == "s" then
-    player:beginReversing()
+    playerLocal:beginReversing()
   elseif key == "a" then
-    player:beginTurningLeft()
+    playerLocal:beginTurningLeft()
   elseif key == "d" then
-    player:beginTurningRight()
+    playerLocal:beginTurningRight()
   elseif key == " " then
-    player:beginBraking()
+    playerLocal:beginBraking()
   end
 end
 
 function love.keyreleased(key, scancode)
   if key == "w" then
-    player:endAccelerate()
+    playerLocal:endAccelerate()
   elseif key == "s" then
-    player:endReversing()
+    playerLocal:endReversing()
   elseif key == "a" then
-    player:endTurningLeft()
+    playerLocal:endTurningLeft()
   elseif key == "d" then
-    player:endTurningRight()
-  elseif key == " " then
-    player:endBraking()
+    playerLocal:endTurningRight()
+  elseif key == "space" then
+    playerLocal:endBraking()
   end
 end
