@@ -157,7 +157,7 @@ function player:create(x, y, id)
     self.isaccelerating = false
   end
 
-  function p:endBrake()
+  function p:endBraking()
     self.isbraking = false
   end
 
