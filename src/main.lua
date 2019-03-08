@@ -220,7 +220,7 @@ end
 
 function love.keypressed(key, scancode, isrepeat)
   if key == "w" then
-    playerLocal:beginAccelerate()
+    playerLocal:beginAccelerating()
   elseif key == "s" then
     playerLocal:beginReversing()
   elseif key == "a" then
@@ -234,7 +234,7 @@ end
 
 function love.keyreleased(key, scancode)
   if key == "w" then
-    playerLocal:endAccelerate()
+    playerLocal:endAccelerating()
   elseif key == "s" then
     playerLocal:endReversing()
   elseif key == "a" then

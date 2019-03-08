@@ -133,7 +133,7 @@ function player:create(x, y, id)
     return math.atan2(vy, vx)
   end
 
-  function p:beginAccelerate()
+  function p:beginAccelerating()
     self.isaccelerating = true
   end
 
@@ -153,11 +153,11 @@ function player:create(x, y, id)
     self.isturningright = true
   end
 
-  function p:endAccelerate()
+  function p:endAccelerating()
     self.isaccelerating = false
   end
 
-  function p:endBrake()
+  function p:endBraking()
     self.isbraking = false
   end
 
