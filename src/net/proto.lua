@@ -6,7 +6,7 @@ local serpent = require("serpent.serpent")
 local proto = {}
 
 -- increment the version whenever the proto changes
-local VERSION = 2
+local VERSION = 3
 
 -- types of commands
 local PROTOCMD_JOIN = 1 -- join the server
@@ -31,6 +31,7 @@ local function allocSendData()
   local data = {
     cmd=PROTOCMD_SEND,
     coordsById={},
+    segmentsData={},
   }
   return data
 end
@@ -94,7 +95,7 @@ function proto:serverDisconnected(server)
   joinedPeers[server] = nil
 end
 
-function proto:welcome(id, coordsById)
+function proto:welcome(id, coordsById, segmentsData)
   local client = clientsById[id]
   if not client then
     logger:error("could not find connection for player %s", id)
@@ -103,7 +104,7 @@ function proto:welcome(id, coordsById)
   joinedPeers[client] = true
   love.event.push('netmanPlayerJoined', id)
   local data = {cmd=PROTOCMD_WELCOME, id=id, coordsById=coordsById,
-                text="welcome to the server!"}
+                segmentsData=segmentsData, text="welcome to the server!"}
   local msg = msgFromData(data)
   client:send(msg)
 end
@@ -135,6 +136,10 @@ function proto:prepare(peer, data)
   if data.type == netman.SEND_COORD then
     -- we only care about the most recent coord; overwrite whatever is here
     sendData.coordsById[data.id] = data.coord
+  elseif data.type == netman.SEND_ROAD then
+    for _, s in ipairs(data.segmentsData) do
+      table.insert(sendData.segmentsData, s)
+    end
   else
     logger:fatal("unrecognized send request type: %s", data.type)
   end
@@ -195,6 +200,7 @@ function proto:recv(peer, msg)
     for id, coord in pairs(data.coordsById) do
       love.event.push('netmanPlayerJoined', id, coord)
     end
+    love.thread.getChannel(netman.CHAN_RECV_SEGMENTS):push(data.segmentsData)
   elseif data.cmd == PROTOCMD_REJECT then
     love.event.push('netmanRejected', data.id, data.text)
   elseif data.cmd == PROTOCMD_ANNOUNCE_PLAYER_JOINED then
@@ -205,6 +211,7 @@ function proto:recv(peer, msg)
     for id, coord in pairs(data.coordsById) do
       love.event.push('netmanRecvCoord', id, coord)
     end
+    love.thread.getChannel(netman.CHAN_RECV_SEGMENTS):push(data.segmentsData)
   else
     logger:error("unsupported proto cmd: %d", data.cmd)
   end
