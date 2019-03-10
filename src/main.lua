@@ -153,6 +153,19 @@ function love.handlers.netmanRecvCoord(id, coord)
   p:setCoord(coord)
 end
 
+function love.handlers.netmanRecvPlayerSprite(id, sprite)
+  logger:info("player %s has changed sprite", id)
+  local p = playersById[id]
+  if not p or p:getId() == playerLocal:getId() then
+    return
+  end
+  p:setSpriteFromData(sprite)
+
+  if isServer then
+    netman:announcePlayerSprite(id, sprite)
+  end
+end
+
 function love.update(dt)
   if world then
     world:update(dt) -- put the world in motion!
@@ -215,7 +228,19 @@ function love.draw()
 end
 
 function love.filedropped(file)
-  playerLocal.img = love.graphics.newImage(file)
+  local data = love.image.newImageData(file)
+  local img = love.graphics.newImage(data)
+  playerLocal:setSprite(img)
+  local id = playerLocal:getId()
+  local sprite = {
+    format=data:getFormat(),
+    data=data:getString()
+  }
+  if isServer then
+    netman:announcePlayerSprite(id, sprite)
+  else
+    netman:sendPlayerSprite(id, sprite)
+  end
 end
 
 function love.keypressed(key, scancode, isrepeat)

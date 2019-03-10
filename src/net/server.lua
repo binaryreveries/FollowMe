@@ -41,6 +41,10 @@ while true do
       proto:announcePlayerJoined(cmd.id, cmd.coord)
     elseif cmd.type == netman.CMD_ANNOUNCE_PLAYER_LEFT then
       proto:announcePlayerLeft(cmd.id)
+    elseif cmd.type == netman.CMD_ANNOUNCE_PLAYER_SPRITE then
+      proto:announcePlayerSprite(cmd.id, cmd.sprite)
+    elseif cmd.type == netman.CMD_SEND_PLAYER_SPRITE then
+      proto:sendPlayerSprite(cmd.id, cmd.sprite)
     elseif cmd.type == netman.CMD_STOP then
       goto exit
     else
