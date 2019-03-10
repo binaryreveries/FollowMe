@@ -45,6 +45,8 @@ while true do
       proto:announcePlayerSprite(cmd.id, cmd.sprite)
     elseif cmd.type == netman.CMD_SEND_PLAYER_SPRITE then
       proto:sendPlayerSprite(cmd.id, cmd.sprite)
+    elseif cmd.type == netman.CMD_ANNOUNCE_SHUTDOWN then
+      proto:announceShutdown()
     elseif cmd.type == netman.CMD_STOP then
       goto exit
     else

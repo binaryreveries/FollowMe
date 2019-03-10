@@ -15,7 +15,8 @@ netman.CMD_ANNOUNCE_PLAYER_JOINED = 5
 netman.CMD_ANNOUNCE_PLAYER_LEFT = 6
 netman.CMD_ANNOUNCE_PLAYER_SPRITE = 7
 netman.CMD_SEND_PLAYER_SPRITE = 8
-netman.CMD_STOP = 9
+netman.CMD_ANNOUNCE_SHUTDOWN = 9
+netman.CMD_STOP = 10
 
 -- types of data we can request to send
 netman.SEND_COORD = 1
@@ -125,6 +126,10 @@ end
 
 function netman:announcePlayerSprite(id, sprite)
   local cmd = {type=self.CMD_ANNOUNCE_PLAYER_SPRITE, id=id, sprite=sprite}
+end
+
+function netman:announceShutdown()
+  local cmd = {type=self.CMD_ANNOUNCE_SHUTDOWN}
   cmdChan:push(cmd)
 end
 
