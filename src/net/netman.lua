@@ -126,6 +126,7 @@ end
 
 function netman:announcePlayerSprite(id, sprite)
   local cmd = {type=self.CMD_ANNOUNCE_PLAYER_SPRITE, id=id, sprite=sprite}
+  cmdChan:push(cmd)
 end
 
 function netman:announceShutdown()
