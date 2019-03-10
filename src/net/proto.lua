@@ -6,7 +6,7 @@ local serpent = require("serpent.serpent")
 local proto = {}
 
 -- increment the version whenever the proto changes
-local VERSION = 4
+local VERSION = 5
 
 -- types of commands
 local PROTOCMD_JOIN = 1 -- join the server
@@ -17,7 +17,8 @@ local PROTOCMD_ANNOUNCE_PLAYER_JOINED = 5 -- a new player appeared
 local PROTOCMD_ANNOUNCE_PLAYER_LEFT = 6 -- a player has left
 local PROTOCMD_ANNOUNCE_PLAYER_SPRITE = 7 -- a player has changed sprites
 local PROTOCMD_SEND_PLAYER_SPRITE = 8 -- a player has changed sprites
-local PROTOCMD_SEND = 9 -- a payload of data
+local PROTOCMD_ANNOUNCE_SHUTDOWN = 9 -- server shutting down, disconnect clients
+local PROTOCMD_SEND = 10 -- a payload of data
 
 -- keep track of client peers by player id
 local clientsById = {}
@@ -147,6 +148,14 @@ function proto:sendPlayerSprite(server, id, sprite)
   server:send(msg)
 end
 
+function proto:announceShutdown()
+  local data = {cmd=PROTOCMD_ANNOUNCE_SHUTDOWN}
+  local msg = msgFromData(data)
+  for peer in pairs(joinedPeers) do
+    peer:send(msg)
+  end
+end
+
 function proto:prepare(peer, data)
   local sendData = getSendData(peer)
   if data.type == netman.SEND_COORD then
@@ -227,6 +236,8 @@ function proto:recv(peer, msg)
     love.event.push('netmanPlayerLeft', data.id)
   elseif data.cmd == PROTOCMD_ANNOUNCE_PLAYER_SPRITE then
     love.event.push('netmanRecvPlayerSprite', data.id, data.sprite)
+  elseif data.cmd == PROTOCMD_ANNOUNCE_SHUTDOWN then
+    love.event.push('netmanDisconnected', netman.DISCONNECT_LEFT)
   elseif data.cmd == PROTOCMD_SEND then
     for id, coord in pairs(data.coordsById) do
       love.event.push('netmanRecvCoord', id, coord)

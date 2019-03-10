@@ -255,7 +255,9 @@ function love.keyreleased(key, scancode)
 end
 
 function love.quit()
-  if not isServer then
+  if isServer then
+    netman:announceShutdown()
+  else
     netman:leave(playerLocal:getId())
   end
 end
