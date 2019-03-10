@@ -1,4 +1,5 @@
 local assets = require("assets")
+local netman = require("net.netman")
 local base = require('entities.base')
 
 local player = {}
@@ -111,6 +112,8 @@ function player:create(x, y, id)
 
     local vx, vy = self.body:getLinearVelocity()
     self.speed = math.sqrt((vx * vx) + (vy * vy))
+
+    netman:sendCoord(self)
   end
 
   function p:draw()

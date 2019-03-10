@@ -1,4 +1,5 @@
 local assets = require("assets")
+local netman = require("net.netman")
 local road = {}
 
 -- initialize road at (x, y) with each segment of given width and length
@@ -32,6 +33,7 @@ function road:load(x, y, width, length)
   -- while the left and right frontiers detect which side of the track the
   -- player is on.
   self.segments = {}
+  self.segmentsData = {} -- original coordinates that created self.segments
   self.skin = assets.img.road
 
   self.frontier = {}
@@ -86,39 +88,64 @@ function road:draw()
   love.graphics.setColor(255, 255, 255, 255)
 end
 
-  
-function road:update(newSegments)
-  -- create a road segment at the position and angle of the frontier.
-  for _, s in ipairs(newSegments) do
-  self:addSegment(s.x, s.y, s.angle)
-  end
-  local lastSegment = newSegments[#newSegments]
-  self:setFrontier(lastSegment.x, lastSegment.y, lastSegment.angle, "center")
-end
-
-
 -- utils
-
-function road:addSegment(x, y, angle)
+function road:addSegment(segmentData)
   local segment = {}
   segment.img = self.skin
   segment.width = segment.img:getWidth()
   segment.height = segment.img:getHeight()
   segment.body = love.physics.newBody(world)
-  segment.body:setAngle(angle)
+  segment.body:setAngle(segmentData.angle)
   local fx = math.sin(segment.body:getAngle()) * (segment.height/2)
   local fy = math.cos(segment.body:getAngle()) * -(segment.height/2)
-  segment.body:setX(x + fx)
-  segment.body:setY(y + fy)
+  segment.body:setX(segmentData.x + fx)
+  segment.body:setY(segmentData.y + fy)
   segment.shape = love.physics.newRectangleShape(0, 0, segment.width, segment.height)
   table.insert(self.segments, segment)
+  table.insert(self.segmentsData, segmentData)
+end
+
+function road:addSegments(segmentsData)
+  if not segmentsData then
+    return
+  end
+  for _, segmentData in ipairs(segmentsData) do
+    self:addSegment(segmentData)
+  end
+end
+
+function road:getSegmentsData()
+  return self.segmentsData
 end
 
 function road:getPaveThreshold()
   return self.paveThreshold
 end
 
-function road:pushFrontier(angle, roadShift)
+local function getLeftAngle(angle)
+  return (angle - math.pi / 2) % (2 * math.pi)
+end
+
+local function getRightAngle(angle)
+  return (angle + math.pi / 2) % (-2 * math.pi)
+end
+
+function road:getDeltaLeft(angle)
+  local leftAngle = getLeftAngle(angle)
+  local deltaLeftX = self.frontier.main.length / 3 * math.cos(leftAngle)
+  local deltaLeftY = self.frontier.main.length / 3 * math.sin(leftAngle)
+  return deltaLeftX, deltaLeftY
+end
+
+function road:getDeltaRight(angle)
+  local rightAngle = getRightAngle(angle)
+  local deltaRightX = self.frontier.main.length / 3 * math.cos(rightAngle)
+  local deltaRightY = self.frontier.main.length / 3 * math.sin(rightAngle)
+  return deltaRightX, deltaRightY
+end
+
+function road:pushFrontierOne(p, roadShift)
+  local angle = p:getTrajectory()
   -- Radians in love range between pi and -pi. To ensure that we never have
   -- angles outside this range, we check if abs(deltaAngle) is greater than pi.
   -- This can happen when crossing the pi/-pi theshold (e.g. the delta between
@@ -138,7 +165,6 @@ function road:pushFrontier(angle, roadShift)
     --car crashes? this should never happen unless people get off the track
   end
 
-
   -- here we apply the rotation limit to our angle. If the change in angle of
   -- our frontier (deltaAngle) is grater then our rotation limit, then we cap
   -- the change in angle by adjusting our last angle by the rotation limit.
@@ -154,26 +180,6 @@ function road:pushFrontier(angle, roadShift)
   -- new angle.
   local x = self.frontier.main.body:getX() + (self.roadPush) * math.cos(angle)
   local y = self.frontier.main.body:getY() + (self.roadPush) * math.sin(angle)
-
-  self:setFrontier(x, y, angle, roadShift)
-  return self.frontier.main.body:getX(), self.frontier.main.body:getY(), self.frontier.main.body:getAngle()
-end
-
-function road:setFrontier(x, y, angle, roadShift)
-  -- calculate positions of left and right frontiers relative to the new main
-  -- frontier.
-  local leftAngle = angle - (math.pi/2)
-  if leftAngle < -math.pi then
-    leftAngle = leftAngle + 2 * math.pi
-  end
-  local deltaLeftX = self.frontier.main.length/3 * math.cos(leftAngle)
-  local deltaLeftY = self.frontier.main.length/3 * math.sin(leftAngle)
-  local rightAngle = angle + (math.pi/2)
-  if rightAngle > math.pi then
-    rightAngle = rightAngle - 2 * math.pi
-  end
-  local deltaRightX = self.frontier.main.length/3 * math.cos(rightAngle)
-  local deltaRightY = self.frontier.main.length/3 * math.sin(rightAngle)
   
   -- if the player is near the edge of the frontier, calculate deltaSlides,
   -- which shift the frontier perpendicular to the trajectory of the player to
@@ -186,21 +192,66 @@ function road:setFrontier(x, y, angle, roadShift)
   else
     local slideAngle = nil
     if roadShift == "left" then
-      slideAngle = leftAngle
+      slideAngle = getLeftAngle(angle)
     elseif roadShift == "right" then
-      slideAngle = rightAngle
+      slideAngle = getRightAngle(angle)
     end
     deltaSlideX = self.roadSlide * math.cos(slideAngle)
     deltaSlideY = self.roadSlide * math.sin(slideAngle)
   end
-  
+
+  local frontierData = {x=(x + deltaSlideX), y=(y + deltaSlideY), angle=angle}
+  self:setFrontier(frontierData)
+
+  return frontierData
+end
+
+function road:pushFrontier(p)
+  -- detect if player is triggering new road creation and calculate location of new road
+  local distance = love.physics.getDistance(p.fixture, road.frontier.main.fixture)
+  -- collided with frontier
+  local newSegmentsData = {}
+  while distance < paveThreshold do
+    -- paving new road
+    local leftDistance = love.physics.getDistance(p.fixture, road.frontier.left.fixture)
+    local rightDistance = love.physics.getDistance(p.fixture, road.frontier.right.fixture)
+    local roadShift
+    if leftDistance < paveThreshold then
+      roadShift = "left"
+    elseif rightDistance < paveThreshold then
+      roadShift = "right"
+    else
+      roadShift = "center"
+    end
+    local frontierData = road:pushFrontierOne(p, roadShift)
+    table.insert(newSegmentsData, frontierData)
+    distance = love.physics.getDistance(p.fixture, road.frontier.main.fixture)
+  end
+  self:addSegments(newSegmentsData)
+
+  if #newSegmentsData > 0 then
+    return newSegmentsData
+  end
+end
+
+function road:setFrontier(frontierData)
+  if not frontierData then
+    return
+  end
+  local x, y, angle = frontierData.x, frontierData.y, frontierData.angle
+
+  -- calculate positions of left and right frontiers relative to the new main
+  -- frontier.
+  local deltaLeftX, deltaLeftY = self:getDeltaLeft(angle)
+  local deltaRightX, deltaRightY = self:getDeltaRight(angle)
+
   -- apply all transformations to the frontiers.
-  self.frontier.main.body:setX( x + deltaSlideX)
-  self.frontier.main.body:setY( y + deltaSlideY)
-  self.frontier.left.body:setX( x + deltaSlideX + deltaLeftX)
-  self.frontier.left.body:setY( y + deltaSlideY + deltaLeftY)
-  self.frontier.right.body:setX(x + deltaSlideX + deltaRightX)
-  self.frontier.right.body:setY(y + deltaSlideY + deltaRightY)
+  self.frontier.main.body:setX(x)
+  self.frontier.main.body:setY(y)
+  self.frontier.left.body:setX(x + deltaLeftX)
+  self.frontier.left.body:setY(y + deltaLeftY)
+  self.frontier.right.body:setX(x + deltaRightX)
+  self.frontier.right.body:setY(y + deltaRightY)
   
   -- Set angles of all frontier objects to the new angle
   self.frontier.main.body:setAngle(angle)

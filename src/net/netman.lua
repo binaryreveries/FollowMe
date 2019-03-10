@@ -19,10 +19,14 @@ netman.CMD_STOP = 9
 
 -- types of data we can request to send
 netman.SEND_COORD = 1
+netman.SEND_ROAD = 2
 
 -- disconnect reasons
 netman.DISCONNECT_LEFT = 0
 netman.DISCONNECT_BAD_VERSION = 1
+
+-- named channel names
+netman.CHAN_RECV_SEGMENTS = 'recvSegmentsDataChan'
 
 local cmdChan = nil -- command channel
 local sendChan = nil -- outgoing data channel
@@ -53,6 +57,14 @@ function netman:sendCoord(entity)
   sendChan:push(data)
 end
 
+function netman:sendRoadData(segmentsData)
+  if not segmentsData then
+    return
+  end
+  local data = {type=self.SEND_ROAD, segmentsData=segmentsData}
+  sendChan:push(data)
+end
+
 -- client commands
 function netman:connect(host, port)
   local cmd = {type=self.CMD_CONNECT, host=host, port=port}
@@ -74,9 +86,30 @@ function netman:sendPlayerSprite(id, sprite)
   cmdChan:push(cmd)
 end
 
+function netman:recvRoadData()
+  local chan = love.thread.getChannel(self.CHAN_RECV_SEGMENTS)
+  local segmentsData = chan:pop()
+  if not segmentsData then
+    return
+  end
+
+  -- drain all segments we've received so far
+  local nextSegmentsData = chan:pop()
+  while nextSegmentsData do
+    for _, s in ipairs(nextSegmentsData) do
+      table.insert(segmentsData, s)
+    end
+    nextSegmentsData = chan:pop()
+  end
+
+  -- the frontier is the most recent segment
+  return segmentsData[#segmentsData], segmentsData
+end
+
 -- server commands
-function netman:welcome(id, coordsById)
-  local cmd = {type=self.CMD_WELCOME, id=id, coordsById=coordsById}
+function netman:welcome(id, coordsById, segmentsData)
+  local cmd = {type=self.CMD_WELCOME, id=id, coordsById=coordsById,
+               segmentsData=segmentsData}
   cmdChan:push(cmd)
 end
 

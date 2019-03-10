@@ -36,7 +36,7 @@ while true do
   local cmd = cmdChan:pop()
   while cmd do
     if cmd.type == netman.CMD_WELCOME then
-      proto:welcome(cmd.id, cmd.coordsById)
+      proto:welcome(cmd.id, cmd.coordsById, cmd.segmentsData)
     elseif cmd.type == netman.CMD_ANNOUNCE_PLAYER_JOINED then
       proto:announcePlayerJoined(cmd.id, cmd.coord)
     elseif cmd.type == netman.CMD_ANNOUNCE_PLAYER_LEFT then
