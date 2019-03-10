@@ -253,3 +253,9 @@ function love.keyreleased(key, scancode)
     playerLocal:endBraking()
   end
 end
+
+function love.quit()
+  if not isServer then
+    netman:leave(playerLocal:getId())
+  end
+end
