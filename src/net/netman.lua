@@ -13,7 +13,9 @@ netman.CMD_LEAVE = 3
 netman.CMD_WELCOME = 4
 netman.CMD_ANNOUNCE_PLAYER_JOINED = 5
 netman.CMD_ANNOUNCE_PLAYER_LEFT = 6
-netman.CMD_STOP = 7
+netman.CMD_ANNOUNCE_PLAYER_SPRITE = 7
+netman.CMD_SEND_PLAYER_SPRITE = 8
+netman.CMD_STOP = 9
 
 -- types of data we can request to send
 netman.SEND_COORD = 1
@@ -79,6 +81,11 @@ function netman:leave(id)
   cmdChan:push(cmd)
 end
 
+function netman:sendPlayerSprite(id, sprite)
+  local cmd = {type=self.CMD_SEND_PLAYER_SPRITE, id=id, sprite=sprite}
+  cmdChan:push(cmd)
+end
+
 function netman:recvRoadData()
   local chan = love.thread.getChannel(self.CHAN_RECV_SEGMENTS)
   local segmentsData = chan:pop()
@@ -113,6 +120,11 @@ end
 
 function netman:announcePlayerLeft(id)
   local cmd = {type=self.CMD_ANNOUNCE_PLAYER_LEFT, id=id}
+  cmdChan:push(cmd)
+end
+
+function netman:announcePlayerSprite(id, sprite)
+  local cmd = {type=self.CMD_ANNOUNCE_PLAYER_SPRITE, id=id, sprite=sprite}
   cmdChan:push(cmd)
 end
 

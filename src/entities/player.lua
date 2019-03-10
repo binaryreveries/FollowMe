@@ -136,6 +136,19 @@ function player:create(x, y, id)
     return math.atan2(vy, vx)
   end
 
+  function p:getSprite()
+    return self.img
+  end
+
+  function p:setSprite(img)
+    self.img = img
+  end
+
+  function p:setSpriteFromData(sprite)
+    local data = love.image.newImageData(32, 32, sprite.format, sprite.data)
+    self.img = love.graphics.newImage(data)
+  end
+
   function p:beginAccelerating()
     self.isaccelerating = true
   end

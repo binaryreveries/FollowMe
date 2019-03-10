@@ -41,6 +41,8 @@ while true do
         proto:join(server, cmd.id)
       elseif cmd.type == netman.CMD_LEAVE then
         proto:leave(server, cmd.id)
+      elseif cmd.type == netman.CMD_SEND_PLAYER_SPRITE then
+        proto:sendPlayerSprite(server, cmd.id, cmd.sprite)
       elseif cmd.type == netman.CMD_STOP then
         goto exit
       else

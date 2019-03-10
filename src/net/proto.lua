@@ -6,7 +6,7 @@ local serpent = require("serpent.serpent")
 local proto = {}
 
 -- increment the version whenever the proto changes
-local VERSION = 3
+local VERSION = 4
 
 -- types of commands
 local PROTOCMD_JOIN = 1 -- join the server
@@ -15,7 +15,9 @@ local PROTOCMD_WELCOME = 3 -- welcome the client into the server
 local PROTOCMD_REJECT = 4 -- disallow the client from joining the server
 local PROTOCMD_ANNOUNCE_PLAYER_JOINED = 5 -- a new player appeared
 local PROTOCMD_ANNOUNCE_PLAYER_LEFT = 6 -- a player has left
-local PROTOCMD_SEND = 7 -- a payload of data
+local PROTOCMD_ANNOUNCE_PLAYER_SPRITE = 7 -- a player has changed sprites
+local PROTOCMD_SEND_PLAYER_SPRITE = 8 -- a player has changed sprites
+local PROTOCMD_SEND = 9 -- a payload of data
 
 -- keep track of client peers by player id
 local clientsById = {}
@@ -131,6 +133,20 @@ function proto:announcePlayerLeft(id)
   end
 end
 
+function proto:announcePlayerSprite(id, sprite)
+  local data = {cmd=PROTOCMD_ANNOUNCE_PLAYER_SPRITE, id=id, sprite=sprite}
+  local msg = msgFromData(data)
+  for peer in pairs(joinedPeers) do
+    peer:send(msg)
+  end
+end
+
+function proto:sendPlayerSprite(server, id, sprite)
+  local data = {cmd=PROTOCMD_SEND_PLAYER_SPRITE, id=id, sprite=sprite}
+  local msg = msgFromData(data)
+  server:send(msg)
+end
+
 function proto:prepare(peer, data)
   local sendData = getSendData(peer)
   if data.type == netman.SEND_COORD then
@@ -194,6 +210,8 @@ function proto:recv(peer, msg)
       joinedPeers[peer] = nil
       peer:disconnect(netman.DISCONNECT_LEFT)
     end
+  elseif data.cmd == PROTOCMD_SEND_PLAYER_SPRITE then
+    love.event.push('netmanRecvPlayerSprite', data.id, data.sprite)
   elseif data.cmd == PROTOCMD_WELCOME then
     joinedPeers[peer] = true
     love.event.push('netmanJoined', data.id, data.text)
@@ -207,6 +225,8 @@ function proto:recv(peer, msg)
     love.event.push('netmanPlayerJoined', data.id, data.coord)
   elseif data.cmd == PROTOCMD_ANNOUNCE_PLAYER_LEFT then
     love.event.push('netmanPlayerLeft', data.id)
+  elseif data.cmd == PROTOCMD_ANNOUNCE_PLAYER_SPRITE then
+    love.event.push('netmanRecvPlayerSprite', data.id, data.sprite)
   elseif data.cmd == PROTOCMD_SEND then
     for id, coord in pairs(data.coordsById) do
       love.event.push('netmanRecvCoord', id, coord)
