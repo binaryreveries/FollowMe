@@ -93,7 +93,7 @@ function love.handlers.netmanPlayerJoinRequest(id)
   for id, p in pairs(playersById) do
     coordsById[id] = p:getCoord()
   end
-  netman:welcome(id, coordsById)
+  netman:welcome(id, coordsById, road:getSegmentsData())
 end
 
 -- client handlers
@@ -153,6 +153,19 @@ function love.handlers.netmanRecvCoord(id, coord)
   p:setCoord(coord)
 end
 
+function love.handlers.netmanRecvPlayerSprite(id, sprite)
+  logger:info("player %s has changed sprite", id)
+  local p = playersById[id]
+  if not p or p:getId() == playerLocal:getId() then
+    return
+  end
+  p:setSpriteFromData(sprite)
+
+  if isServer then
+    netman:announcePlayerSprite(id, sprite)
+  end
+end
+
 function love.update(dt)
   if world then
     world:update(dt) -- put the world in motion!
@@ -160,33 +173,16 @@ function love.update(dt)
 
   for _, p in pairs(playersById) do
     p:update(ground, dt)
+    if isServer then
+      local segmentsData = road:pushFrontier(p)
+      netman:sendRoadData(segmentsData)
+    end
+  end
 
-    -- detect if player is triggering new road creation and calculate location of new road
-    local distance = love.physics.getDistance(p.fixture, road.frontier.main.fixture)
-    -- collided with frontier
-    local newSegments = {}
-    while distance < paveThreshold do
-      -- paving new road
-      local leftDistance = love.physics.getDistance(p.fixture, road.frontier.left.fixture)
-      local rightDistance = love.physics.getDistance(p.fixture, road.frontier.right.fixture)
-      local roadShift
-      if leftDistance < paveThreshold then
-        roadShift = "left"
-      elseif rightDistance < paveThreshold then
-        roadShift = "right"
-      else
-        roadShift = "center"
-      end
-      local x, y, angle = road:pushFrontier(p:getTrajectory(), roadShift)
-      table.insert(newSegments, {x=x, y=y, angle=angle})
-      distance = love.physics.getDistance(p.fixture, road.frontier.main.fixture)
-    end
-    
-    if #newSegments > 0 then
-      road:update(newSegments)
-    end
-    
-    netman:sendCoord(p)
+  if not isServer then -- client
+    local frontierData, segmentsData = netman:recvRoadData()
+    road:setFrontier(frontierData)
+    road:addSegments(segmentsData)
   end
 
   camera:setPosition(playerLocal:getPosition())
@@ -215,7 +211,19 @@ function love.draw()
 end
 
 function love.filedropped(file)
-  playerLocal.img = love.graphics.newImage(file)
+  local data = love.image.newImageData(file)
+  local img = love.graphics.newImage(data)
+  playerLocal:setSprite(img)
+  local id = playerLocal:getId()
+  local sprite = {
+    format=data:getFormat(),
+    data=data:getString()
+  }
+  if isServer then
+    netman:announcePlayerSprite(id, sprite)
+  else
+    netman:sendPlayerSprite(id, sprite)
+  end
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -243,5 +251,13 @@ function love.keyreleased(key, scancode)
     playerLocal:endTurningRight()
   elseif key == "space" then
     playerLocal:endBraking()
+  end
+end
+
+function love.quit()
+  if isServer then
+    netman:announceShutdown()
+  else
+    netman:leave(playerLocal:getId())
   end
 end

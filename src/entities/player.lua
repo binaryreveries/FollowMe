@@ -1,4 +1,5 @@
 local assets = require("assets")
+local netman = require("net.netman")
 local base = require('entities.base')
 
 local player = {}
@@ -111,6 +112,8 @@ function player:create(x, y, id)
 
     local vx, vy = self.body:getLinearVelocity()
     self.speed = math.sqrt((vx * vx) + (vy * vy))
+
+    netman:sendCoord(self)
   end
 
   function p:draw()
@@ -131,6 +134,19 @@ function player:create(x, y, id)
   function p:getTrajectory()
     local vx, vy = self.body:getLinearVelocity()
     return math.atan2(vy, vx)
+  end
+
+  function p:getSprite()
+    return self.img
+  end
+
+  function p:setSprite(img)
+    self.img = img
+  end
+
+  function p:setSpriteFromData(sprite)
+    local data = love.image.newImageData(32, 32, sprite.format, sprite.data)
+    self.img = love.graphics.newImage(data)
   end
 
   function p:beginAccelerating()

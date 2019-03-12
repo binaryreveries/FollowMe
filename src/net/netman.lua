@@ -13,14 +13,21 @@ netman.CMD_LEAVE = 3
 netman.CMD_WELCOME = 4
 netman.CMD_ANNOUNCE_PLAYER_JOINED = 5
 netman.CMD_ANNOUNCE_PLAYER_LEFT = 6
-netman.CMD_STOP = 7
+netman.CMD_ANNOUNCE_PLAYER_SPRITE = 7
+netman.CMD_SEND_PLAYER_SPRITE = 8
+netman.CMD_ANNOUNCE_SHUTDOWN = 9
+netman.CMD_STOP = 10
 
 -- types of data we can request to send
 netman.SEND_COORD = 1
+netman.SEND_ROAD = 2
 
 -- disconnect reasons
 netman.DISCONNECT_LEFT = 0
 netman.DISCONNECT_BAD_VERSION = 1
+
+-- named channel names
+netman.CHAN_RECV_SEGMENTS = 'recvSegmentsDataChan'
 
 local cmdChan = nil -- command channel
 local sendChan = nil -- outgoing data channel
@@ -51,6 +58,14 @@ function netman:sendCoord(entity)
   sendChan:push(data)
 end
 
+function netman:sendRoadData(segmentsData)
+  if not segmentsData then
+    return
+  end
+  local data = {type=self.SEND_ROAD, segmentsData=segmentsData}
+  sendChan:push(data)
+end
+
 -- client commands
 function netman:connect(host, port)
   local cmd = {type=self.CMD_CONNECT, host=host, port=port}
@@ -67,9 +82,35 @@ function netman:leave(id)
   cmdChan:push(cmd)
 end
 
+function netman:sendPlayerSprite(id, sprite)
+  local cmd = {type=self.CMD_SEND_PLAYER_SPRITE, id=id, sprite=sprite}
+  cmdChan:push(cmd)
+end
+
+function netman:recvRoadData()
+  local chan = love.thread.getChannel(self.CHAN_RECV_SEGMENTS)
+  local segmentsData = chan:pop()
+  if not segmentsData then
+    return
+  end
+
+  -- drain all segments we've received so far
+  local nextSegmentsData = chan:pop()
+  while nextSegmentsData do
+    for _, s in ipairs(nextSegmentsData) do
+      table.insert(segmentsData, s)
+    end
+    nextSegmentsData = chan:pop()
+  end
+
+  -- the frontier is the most recent segment
+  return segmentsData[#segmentsData], segmentsData
+end
+
 -- server commands
-function netman:welcome(id, coordsById)
-  local cmd = {type=self.CMD_WELCOME, id=id, coordsById=coordsById}
+function netman:welcome(id, coordsById, segmentsData)
+  local cmd = {type=self.CMD_WELCOME, id=id, coordsById=coordsById,
+               segmentsData=segmentsData}
   cmdChan:push(cmd)
 end
 
@@ -80,6 +121,16 @@ end
 
 function netman:announcePlayerLeft(id)
   local cmd = {type=self.CMD_ANNOUNCE_PLAYER_LEFT, id=id}
+  cmdChan:push(cmd)
+end
+
+function netman:announcePlayerSprite(id, sprite)
+  local cmd = {type=self.CMD_ANNOUNCE_PLAYER_SPRITE, id=id, sprite=sprite}
+  cmdChan:push(cmd)
+end
+
+function netman:announceShutdown()
+  local cmd = {type=self.CMD_ANNOUNCE_SHUTDOWN}
   cmdChan:push(cmd)
 end
 
