@@ -235,7 +235,7 @@ function love.keypressed(key, scancode, isrepeat)
     playerLocal:beginTurningLeft()
   elseif key == "d" then
     playerLocal:beginTurningRight()
-  elseif key == " " then
+  elseif key == "space" then
     playerLocal:beginBraking()
   end
 end
