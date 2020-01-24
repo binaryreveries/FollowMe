@@ -12,4 +12,8 @@ function util:randHex()
   return string.format("%x", util:randNum())
 end
 
+function util:dotProduct(x1, y1, x2, y2)
+  return x1 * x2 + y1 * y2
+end
+
 return util
