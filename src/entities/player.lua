@@ -1,41 +1,30 @@
 local assets = require("assets")
 local netman = require("net.netman")
-local base = require('entities.base')
+local base = require("entities.base")
+local tire = require("entities.tire")
+local util = require("util.util")
 
 local player = {}
 
-local function createJoint(surface, object, x, y, maxForceFriction, maxTorqueFriction)
-  local j = love.physics.newFrictionJoint(surface, object, x, y, true)
-  j:setMaxForce(object:getMass() * maxForceFriction)
-  j:setMaxTorque(object:getInertia() * maxTorqueFriction)
-  return j
-end
-
--- rotate a vector `x, y` in 2D space by `angle`
--- x2=cosβx1−sinβy1
--- y2=sinβx1+cosβy1
-local function rotateVector(x, y, angle)
-  local s = math.sin(angle)
-  local c = math.cos(angle)
-  return x*c - y*s, x*s + y*c
-end
-
 function player:create(x, y, id)
   local p = {
-    acceleration=300,
-    turnMultiplier=8,
-    wheelForceFriction=50,
-    wheelTorqueFriction=1,
-
     img=assets.img.car,
     width=assets.img.car:getWidth(),
     height=assets.img.car:getHeight(),
 
-    joints={},
     body=love.physics.newBody(world, x, y, "dynamic"),
     shape=love.physics.newRectangleShape(0, 0, assets.img.car:getWidth(),
                                          assets.img.car:getHeight()),
     fixture=nil,
+
+    tires={},
+    fljoint=nil,
+    frjoint=nil,
+
+    desiredSpeed=0,
+    desiredTorque=0,
+    desiredAngle=0,
+
     lastX=x,
     lastY=y,
   }
@@ -47,84 +36,81 @@ function player:create(x, y, id)
     p:genId()
   end
 
-  -- attach fixture to body and set density to 1 (density increases mass)
-  p.fixture = love.physics.newFixture(p.body, p.shape, 1)
+  -- attach fixture to body and set density to 0.1
+  p.fixture = love.physics.newFixture(p.body, p.shape, 0.1)
+
+  local rearTireMaxDriveForce = 300
+  local frontTireMaxDriveForce = 500
+  local rearTireMaxLateralImpluse = 8.5
+  local frontTireMaxLateralImpluse = 7.5
+
+  -- create tires
+  local fltire = tire:create(x - 5, y + 8.5, frontTireMaxDriveForce, frontTireMaxLateralImpluse)
+  p.fljoint = love.physics.newRevoluteJoint(fltire.body, p.body, x - 5, y + 8.5)
+  p.fljoint:setLimits(0, 0)
+  p.fljoint:setLimitsEnabled(true)
+  table.insert(p.tires, fltire)
+
+  local frtire = tire:create(x + 5, y + 8.5, frontTireMaxDriveForce, frontTireMaxLateralImpluse)
+  p.frjoint = love.physics.newRevoluteJoint(frtire.body, p.body, x + 5, y + 8.5)
+  p.frjoint:setLimits(0, 0)
+  p.frjoint:setLimitsEnabled(true)
+  table.insert(p.tires, frtire)
+
+  local rltire = tire:create(x - 5, y + 0.75, rearTireMaxDriveForce, rearTireMaxLateralImpluse)
+  p.rljoint = love.physics.newRevoluteJoint(rltire.body, p.body, x - 5, y + 0.75)
+  p.rljoint:setLimits(0, 0)
+  p.rljoint:setLimitsEnabled(true)
+  table.insert(p.tires, rltire)
+
+  local rrtire = tire:create(x + 5, y + 0.75, rearTireMaxDriveForce, rearTireMaxLateralImpluse)
+  p.rrjoint = love.physics.newRevoluteJoint(rrtire.body, p.body, x + 5, y + 0.75)
+  p.rrjoint:setLimits(0, 0)
+  p.rrjoint:setLimitsEnabled(true)
+  table.insert(p.tires, rrtire)
 
   function p:destroy()
+    -- destroy tires
+    for _, t in pairs(self.tires) do
+      t:destroy()
+    end
+
     p.body:destroy()
   end
 
+  local maxTurnPerTimeStep = 320*math.pi/60
+
   function p:update(ground, dt)
-    for index, joint in pairs(self.joints) do
-      joint:destroy()
+    -- turn wheels
+    local angleNow = self.fljoint:getJointAngle()
+    local angleToTurn = self.desiredAngle - angleNow
+    angleToTurn = util:clamp(angleToTurn, -maxTurnPerTimeStep, maxTurnPerTimeStep)
+    local newAngle = angleNow + angleToTurn
+    self.fljoint:setLimits(newAngle, newAngle)
+    self.frjoint:setLimits(newAngle, newAngle)
+
+    for _, t in pairs(self.tires) do
+      t:update(self.desiredSpeed, self.desiredTorque)
     end
-
-    self.joints = {}
-
-    -- setup keyboard event handling
-    local inertia = self.body:getInertia()
-
-    local angle = self.body:getAngle()
-    local mass = self.body:getMass()
-    if self.isaccelerating then
-      local fx = mass * -self.acceleration * math.cos(angle)
-      local fy = mass * -self.acceleration * math.sin(angle)
-      self.body:applyForce(fx, fy)
-    end
-
-    if self.isbraking then
-    end
-
-    if self.isturningleft then
-      if self.isreversing then
-        self.body:applyTorque(self.turnMultiplier * inertia)
-      else
-        self.body:applyTorque(-self.turnMultiplier * inertia)
-      end
-    end
-
-    if self.isturningright then
-      if self.isreversing then
-        self.body:applyTorque(-self.turnMultiplier * inertia)
-      else
-        self.body:applyTorque(self.turnMultiplier * inertia)
-      end
-    end
-
-    if self.isreversing then
-      fx = mass * self.acceleration * math.cos(angle)
-      fy = mass * self.acceleration * math.sin(angle)
-      self.body:applyForce(fx, fy)
-    end
-
-    local x, y = self.body:getWorldCenter()
-
-    -- wheel coordinates
-    local x1, y1 = rotateVector(-self.width/2, -self.height/2, angle) -- front left
-    local x2, y2 = rotateVector(self.width/2, -self.height/2, angle) -- front right
-    local x3, y3 = rotateVector(-self.width/2, self.height/2, angle) -- rear left
-    local x4, y4 = rotateVector(self.width/2, self.height/2, angle) -- rear right
-
-    table.insert(self.joints, createJoint(ground.body, self.body, x + x1, y + y1, self.wheelForceFriction, self.wheelTorqueFriction))
-    table.insert(self.joints, createJoint(ground.body, self.body, x + x2, y + y2, self.wheelForceFriction, self.wheelTorqueFriction))
-    table.insert(self.joints, createJoint(ground.body, self.body, x + x3, y + y3, self.wheelForceFriction, self.wheelTorqueFriction))
-    table.insert(self.joints, createJoint(ground.body, self.body, x + x4, y + y4, self.wheelForceFriction, self.wheelTorqueFriction))
-
-    local vx, vy = self.body:getLinearVelocity()
-    self.speed = math.sqrt((vx * vx) + (vy * vy))
 
     netman:sendCoord(self)
   end
 
   function p:draw()
+    -- draw chassis
     love.graphics.draw(self.img,
     self.body:getX(),
     self.body:getY(),
-    self.body:getAngle() - math.pi/2,
+    self.body:getAngle() - math.pi,
     1,
     1,
     self.width/2,
     self.height/2)
+
+    -- draw tires
+    for _, t in pairs(self.tires) do
+      t:draw()
+    end
   end
 
   function p:getPosition()
@@ -149,44 +135,51 @@ function player:create(x, y, id)
     self.img = love.graphics.newImage(data)
   end
 
+  local maxForwardSpeed = 250
+  local maxReverseSpeed = -40
+
   function p:beginAccelerating()
-    self.isaccelerating = true
+    self.desiredSpeed = maxForwardSpeed
   end
 
   function p:beginBraking()
-    self.isbraking = true
   end
 
   function p:beginReversing()
-    self.isreversing = true
+    self.desiredSpeed = maxReverseSpeed
   end
 
+  local lockAngle = 40*math.pi/180
+
   function p:beginTurningLeft()
-    self.isturningleft = true
+    self.desiredTorque = 15
+    self.desiredAngle = lockAngle
   end
 
   function p:beginTurningRight()
-    self.isturningright = true
+    self.desiredTorque = -15
+    self.desiredAngle = -lockAngle
   end
 
   function p:endAccelerating()
-    self.isaccelerating = false
+    self.desiredSpeed = 0
   end
 
   function p:endBraking()
-    self.isbraking = false
   end
 
   function p:endReversing()
-    self.isreversing = false
+    self.desiredSpeed = 0
   end
 
   function p:endTurningLeft()
-    self.isturningleft = false
+    self.desiredTorque = 0
+    self.desiredAngle = 0
   end
 
   function p:endTurningRight()
-    self.isturningright = false
+    self.desiredTorque = 0
+    self.desiredAngle = 0
   end
 
   return p
