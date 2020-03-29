@@ -13,7 +13,7 @@ function player:create(x, y, id)
     height=assets.img.car:getHeight(),
 
     body=love.physics.newBody(world, x, y, "dynamic"),
-    shape=love.physics.newRectangleShape(0, 0, assets.img.car:getWidth(),
+    shape=love.physics.newRectangleShape(assets.img.car:getWidth(),
                                          assets.img.car:getHeight()),
     fixture=nil,
 
