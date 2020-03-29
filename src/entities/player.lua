@@ -80,7 +80,7 @@ function player:create(x, y, id)
 
   local maxTurnPerTimeStep = 320*math.pi/60
 
-  function p:update(ground, dt)
+  function p:update(dt)
     -- turn wheels
     local angleNow = self.fljoint:getJointAngle()
     local angleToTurn = self.desiredAngle - angleNow

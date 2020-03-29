@@ -172,7 +172,7 @@ function love.update(dt)
   end
 
   for _, p in pairs(playersById) do
-    p:update(ground, dt)
+    p:update(dt)
     if isServer then
       local segmentsData = road:pushFrontier(p)
       netman:sendRoadData(segmentsData)
