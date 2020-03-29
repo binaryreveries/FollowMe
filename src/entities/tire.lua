@@ -67,6 +67,7 @@ function tire:create(x, y, maxDriveForce, maxLateralImpulse)
         local fx, fy = self:getForwardVelocity()
         speed = util:dotProduct(fx, fy, nx, ny)
 
+        local force = 0
         if desiredSpeed > speed then
             force = maxDriveForce
         elseif desiredSpeed < speed then
