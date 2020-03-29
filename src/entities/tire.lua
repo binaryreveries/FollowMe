@@ -115,7 +115,7 @@ function tire:create(x, y, maxDriveForce, maxLateralImpulse)
         end
     end
 
-    function t:updateTraction(desiredTorque)
+    function t:updateTraction()
         if next(self.surfaces) == nil then
             self.traction = 1
         else
