@@ -1,4 +1,3 @@
-local assets = require("assets")
 local netman = require("net.netman")
 local base = require("entities.base")
 local tire = require("entities.tire")
@@ -7,14 +6,20 @@ local util = require("util.util")
 local player = {}
 
 function player:create(x, y, id)
-  local p = {
-    img=assets.img.car,
-    width=assets.img.car:getWidth(),
-    height=assets.img.car:getHeight(),
+  local verticies = {
+     1.5, 0,
+     3  , 2.5,
+     2.8, 5.5,
+     1  , 10,
+    -1  , 10,
+    -2.8, 5.5,
+    -3  , 2.5,
+    -1.5, 0,
+  }
 
+  local p = {
     body=love.physics.newBody(world, x, y, "dynamic"),
-    shape=love.physics.newRectangleShape(assets.img.car:getWidth(),
-                                         assets.img.car:getHeight()),
+    shape=love.physics.newPolygonShape(unpack(verticies)),
     fixture=nil,
 
     tires={},
@@ -57,14 +62,14 @@ function player:create(x, y, id)
   p.frjoint:setLimitsEnabled(true)
   table.insert(p.tires, frtire)
 
-  local rltire = tire:create(x - 5, y - 5, rearTireMaxDriveForce, rearTireMaxLateralImpulse)
-  p.rljoint = love.physics.newRevoluteJoint(rltire.body, p.body, x - 5, y - 5)
+  local rltire = tire:create(x - 5, y + 0.75, rearTireMaxDriveForce, rearTireMaxLateralImpulse)
+  p.rljoint = love.physics.newRevoluteJoint(rltire.body, p.body, x - 5, y + 0.75)
   p.rljoint:setLimits(0, 0)
   p.rljoint:setLimitsEnabled(true)
   table.insert(p.tires, rltire)
 
-  local rrtire = tire:create(x + 5, y - 5, rearTireMaxDriveForce, rearTireMaxLateralImpulse)
-  p.rrjoint = love.physics.newRevoluteJoint(rrtire.body, p.body, x + 5, y - 5)
+  local rrtire = tire:create(x + 5, y + 0.75, rearTireMaxDriveForce, rearTireMaxLateralImpulse)
+  p.rrjoint = love.physics.newRevoluteJoint(rrtire.body, p.body, x + 5, y + 0.75)
   p.rrjoint:setLimits(0, 0)
   p.rrjoint:setLimitsEnabled(true)
   table.insert(p.tires, rrtire)
@@ -98,14 +103,7 @@ function player:create(x, y, id)
 
   function p:draw()
     -- draw chassis
-    love.graphics.draw(self.img,
-    self.body:getX(),
-    self.body:getY(),
-    self.body:getAngle() - math.pi,
-    1,
-    1,
-    self.width/2,
-    self.height/2)
+    love.graphics.polygon("line", self.body:getWorldPoints(self.shape:getPoints()))
 
     -- draw tires
     for _, t in pairs(self.tires) do
