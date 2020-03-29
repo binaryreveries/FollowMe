@@ -30,7 +30,7 @@ function love.load(args)
     logger:debug("\t%s -> %s", k, v)
   end
 
-  love.physics.setMeter(16) -- length of a meter in our world is 16px
+  love.physics.setMeter(1) -- length of a meter in our world is 1px
   world = love.physics.newWorld(0, 0, true) -- create a world with no horizontal or vertical gravity
 
   assets:load()
