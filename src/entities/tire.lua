@@ -83,7 +83,7 @@ function tire:create(x, y, maxDriveForce, maxLateralImpulse)
         local vx, vy = self:getLateralVelocity()
         local mass = self.body:getMass()
         local lx, ly = mass * -vx, mass * -vy
-        local magnitude = math.sqrt(lx * lx, ly * ly)
+        local magnitude = math.sqrt(lx * lx + ly * ly)
         if magnitude > 0 then
             if magnitude > maxLateralImpulse then
                 lx = lx * maxLateralImpulse / magnitude
