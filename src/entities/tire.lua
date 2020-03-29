@@ -4,7 +4,7 @@ local tire = {}
 
 local tireDataType = "tire"
 
-function tire:create(x, y, maxDriveForce, maxLateralImpluse)
+function tire:create(x, y, maxDriveForce, maxLateralImpulse)
     -- 0.5, 1.25
     local width, height = 1, 2.5
 
@@ -84,9 +84,9 @@ function tire:create(x, y, maxDriveForce, maxLateralImpluse)
         local lx, ly = mass * -vx, mass * -vy
         local magnitude = math.sqrt(lx * lx, ly * ly)
         if magnitude > 0 then
-            if magnitude > maxLateralImpluse then
-                lx = lx * maxLateralImpluse / magnitude
-                ly = ly * maxLateralImpluse / magnitude
+            if magnitude > maxLateralImpulse then
+                lx = lx * maxLateralImpulse / magnitude
+                ly = ly * maxLateralImpulse / magnitude
             end
             self.body:applyLinearImpulse(self.traction * lx, self.traction * ly,
                                          self.body:getWorldCenter())
@@ -94,9 +94,9 @@ function tire:create(x, y, maxDriveForce, maxLateralImpluse)
 
         -- rotational force
         local afactor = 0.1
-        local aimpluse = afactor * self.body:getInertia() *
+        local aimpulse = afactor * self.body:getInertia() *
                              -self.body:getAngularVelocity()
-        self.body:applyAngularImpulse(self.traction * aimpluse)
+        self.body:applyAngularImpulse(self.traction * aimpulse)
 
         -- longitudinal force
         local nx, ny = self:getForwardVelocity()

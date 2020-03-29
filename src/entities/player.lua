@@ -41,30 +41,30 @@ function player:create(x, y, id)
 
   local rearTireMaxDriveForce = 300
   local frontTireMaxDriveForce = 500
-  local rearTireMaxLateralImpluse = 8.5
-  local frontTireMaxLateralImpluse = 7.5
+  local rearTireMaxLateralImpulse = 8.5
+  local frontTireMaxLateralImpulse = 7.5
 
   -- create tires
-  local fltire = tire:create(x - 5, y + 8.5, frontTireMaxDriveForce, frontTireMaxLateralImpluse)
+  local fltire = tire:create(x - 5, y + 8.5, frontTireMaxDriveForce, frontTireMaxLateralImpulse)
   p.fljoint = love.physics.newRevoluteJoint(fltire.body, p.body, x - 5, y + 8.5)
   p.fljoint:setLimits(0, 0)
   p.fljoint:setLimitsEnabled(true)
   table.insert(p.tires, fltire)
 
-  local frtire = tire:create(x + 5, y + 8.5, frontTireMaxDriveForce, frontTireMaxLateralImpluse)
+  local frtire = tire:create(x + 5, y + 8.5, frontTireMaxDriveForce, frontTireMaxLateralImpulse)
   p.frjoint = love.physics.newRevoluteJoint(frtire.body, p.body, x + 5, y + 8.5)
   p.frjoint:setLimits(0, 0)
   p.frjoint:setLimitsEnabled(true)
   table.insert(p.tires, frtire)
 
-  local rltire = tire:create(x - 5, y + 0.75, rearTireMaxDriveForce, rearTireMaxLateralImpluse)
-  p.rljoint = love.physics.newRevoluteJoint(rltire.body, p.body, x - 5, y + 0.75)
+  local rltire = tire:create(x - 5, y - 5, rearTireMaxDriveForce, rearTireMaxLateralImpulse)
+  p.rljoint = love.physics.newRevoluteJoint(rltire.body, p.body, x - 5, y - 5)
   p.rljoint:setLimits(0, 0)
   p.rljoint:setLimitsEnabled(true)
   table.insert(p.tires, rltire)
 
-  local rrtire = tire:create(x + 5, y + 0.75, rearTireMaxDriveForce, rearTireMaxLateralImpluse)
-  p.rrjoint = love.physics.newRevoluteJoint(rrtire.body, p.body, x + 5, y + 0.75)
+  local rrtire = tire:create(x + 5, y - 5, rearTireMaxDriveForce, rearTireMaxLateralImpulse)
+  p.rrjoint = love.physics.newRevoluteJoint(rrtire.body, p.body, x + 5, y - 5)
   p.rrjoint:setLimits(0, 0)
   p.rrjoint:setLimitsEnabled(true)
   table.insert(p.tires, rrtire)
