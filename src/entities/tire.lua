@@ -35,15 +35,15 @@ function tire:create(x, y, maxDriveForce, maxLateralImpulse)
     function t:getForwardVelocity()
         local nx, ny = self.body:getWorldVector(0, 1)
         local lx, ly = self.body:getLinearVelocity()
-        local scalar = util:dotProduct(nx, ny, lx, ly)
-        return nx * scalar, ny * scalar
+        local factor = util:dotProduct(nx, ny, lx, ly)
+        return factor * nx, factor * ny
     end
 
     function t:getLateralVelocity()
         local nx, ny = self.body:getWorldVector(1, 0)
         local lx, ly = self.body:getLinearVelocity()
-        local scalar = util:dotProduct(nx, ny, lx, ly)
-        return nx * scalar, ny * scalar
+        local factor = util:dotProduct(nx, ny, lx, ly)
+        return factor * nx, factor * ny
     end
 
     function t:surfaceAdd(s)
