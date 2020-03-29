@@ -25,7 +25,7 @@ function tire:create(x, y, maxDriveForce, maxLateralImpulse)
     -- attach tire to body for use during contact callbacks
     t.body:setUserData(t)
 
-    function t:destroy() t.body:destroy() end
+    function t:destroy() self.body:destroy() end
 
     function t:draw()
         love.graphics.polygon("line",
