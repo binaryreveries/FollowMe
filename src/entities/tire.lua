@@ -1,3 +1,5 @@
+-- Based upon: http://www.iforce2d.net/b2dtut/top-down-car
+
 local util = require("util.util")
 
 local tire = {}
