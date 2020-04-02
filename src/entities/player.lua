@@ -37,8 +37,8 @@ function player:create(x, y, id)
     p:genId()
   end
 
-  -- attach fixture to body and set density to 0.1
-  p.fixture = love.physics.newFixture(p.body, p.shape, 0.1)
+  -- attach fixture to body and set density to 1.0
+  p.fixture = love.physics.newFixture(p.body, p.shape, 1.0)
 
   local rearTireMaxDriveForce = 300
   local frontTireMaxDriveForce = 500
@@ -46,7 +46,7 @@ function player:create(x, y, id)
   local frontTireMaxLateralImpulse = 7.5
 
   local wheeltrack = p.width/2
-  local wheelbase = p.height/2 - 2
+  local wheelbase = p.height/2 - 4
 
   -- create tires
   local fltire = tire:create(x - wheeltrack, y + wheelbase, frontTireMaxDriveForce, frontTireMaxLateralImpulse)
