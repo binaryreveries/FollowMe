@@ -110,6 +110,9 @@ function player:create(x, y, id)
     self.width/2,
     self.height/2)
 
+    -- bounding box
+    love.graphics.polygon("line", self.body:getWorldPoints(self.shape:getPoints()))
+
     -- draw tires
     for _, t in pairs(self.tires) do
       t:draw()
