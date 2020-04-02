@@ -44,27 +44,30 @@ function player:create(x, y, id)
   local rearTireMaxLateralImpulse = 8.5
   local frontTireMaxLateralImpulse = 7.5
 
+  local wheeltrack = p.width/2
+  local wheelbase = p.height/2 - 2
+
   -- create tires
-  local fltire = tire:create(x - 5, y + 8.5, frontTireMaxDriveForce, frontTireMaxLateralImpulse)
-  p.fljoint = love.physics.newRevoluteJoint(fltire.body, p.body, x - 5, y + 8.5)
+  local fltire = tire:create(x - wheeltrack, y + wheelbase, frontTireMaxDriveForce, frontTireMaxLateralImpulse)
+  p.fljoint = love.physics.newRevoluteJoint(fltire.body, p.body, x - wheeltrack, y + wheelbase)
   p.fljoint:setLimits(0, 0)
   p.fljoint:setLimitsEnabled(true)
   table.insert(p.tires, fltire)
 
-  local frtire = tire:create(x + 5, y + 8.5, frontTireMaxDriveForce, frontTireMaxLateralImpulse)
-  p.frjoint = love.physics.newRevoluteJoint(frtire.body, p.body, x + 5, y + 8.5)
+  local frtire = tire:create(x + wheeltrack, y + wheelbase, frontTireMaxDriveForce, frontTireMaxLateralImpulse)
+  p.frjoint = love.physics.newRevoluteJoint(frtire.body, p.body, x + wheeltrack, y + wheelbase)
   p.frjoint:setLimits(0, 0)
   p.frjoint:setLimitsEnabled(true)
   table.insert(p.tires, frtire)
 
-  local rltire = tire:create(x - 5, y - 5, rearTireMaxDriveForce, rearTireMaxLateralImpulse)
-  p.rljoint = love.physics.newRevoluteJoint(rltire.body, p.body, x - 5, y - 5)
+  local rltire = tire:create(x - wheeltrack, y - wheelbase, rearTireMaxDriveForce, rearTireMaxLateralImpulse)
+  p.rljoint = love.physics.newRevoluteJoint(rltire.body, p.body, x - wheeltrack, y - wheelbase)
   p.rljoint:setLimits(0, 0)
   p.rljoint:setLimitsEnabled(true)
   table.insert(p.tires, rltire)
 
-  local rrtire = tire:create(x + 5, y - 5, rearTireMaxDriveForce, rearTireMaxLateralImpulse)
-  p.rrjoint = love.physics.newRevoluteJoint(rrtire.body, p.body, x + 5, y - 5)
+  local rrtire = tire:create(x + wheeltrack, y - wheelbase, rearTireMaxDriveForce, rearTireMaxLateralImpulse)
+  p.rrjoint = love.physics.newRevoluteJoint(rrtire.body, p.body, x + wheeltrack, y - wheelbase)
   p.rrjoint:setLimits(0, 0)
   p.rrjoint:setLimitsEnabled(true)
   table.insert(p.tires, rrtire)
