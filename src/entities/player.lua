@@ -3,6 +3,7 @@ local netman = require("net.netman")
 local base = require("entities.base")
 local tire = require("entities.tire")
 local util = require("util.util")
+local ctx = require("gamectx.global")
 
 local player = {}
 
@@ -111,7 +112,9 @@ function player:create(x, y, id)
     self.height/2)
 
     -- bounding box
-    love.graphics.polygon("line", self.body:getWorldPoints(self.shape:getPoints()))
+    if ctx:get('debugEnabled') then
+      love.graphics.polygon("line", self.body:getWorldPoints(self.shape:getPoints()))
+    end
 
     -- draw tires
     for _, t in pairs(self.tires) do
