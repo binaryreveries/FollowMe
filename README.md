@@ -29,3 +29,9 @@ love src
 
 For more information about building, see [Getting
 Started](https://love2d.org/wiki/Getting_Started).
+
+
+## Credits
+
+Vehicle physics based upon
+[Top-down car physics](http://www.iforce2d.net/b2dtut/top-down-car).
